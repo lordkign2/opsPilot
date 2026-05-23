@@ -1,0 +1,122 @@
+"""
+OpsPilot — Internal Event Bus.
+
+A lightweight in-process event system for decoupled module
+communication. Modules publish events; other modules subscribe
+to react without tight coupling.
+
+In future phases, this can be extended to push events to
+Redis Pub/Sub or a message broker for distributed processing.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import logging
+from collections import defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import Any, Callable, Coroutine
+from uuid import uuid4
+
+logger = logging.getLogger("opspilot.events")
+
+# Type alias for async event handlers
+EventHandler = Callable[["Event"], Coroutine[Any, Any, None]]
+
+
+@dataclass
+class Event:
+    """Base event structure."""
+
+    event_type: str
+    payload: dict[str, Any]
+    event_id: str = field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    source_module: str = ""
+
+
+class EventBus:
+    """
+    Simple async event bus.
+
+    Usage:
+        bus = EventBus()
+
+        @bus.on("order.created")
+        async def handle_order_created(event: Event):
+            ...
+
+        await bus.emit("order.created", {"order_id": "..."})
+    """
+
+    def __init__(self) -> None:
+        self._handlers: dict[str, list[EventHandler]] = defaultdict(list)
+
+    def on(self, event_type: str) -> Callable[[EventHandler], EventHandler]:
+        """Decorator to register an event handler."""
+
+        def decorator(handler: EventHandler) -> EventHandler:
+            self._handlers[event_type].append(handler)
+            logger.debug(
+                "Registered handler %s for event '%s'",
+                handler.__name__,
+                event_type,
+            )
+            return handler
+
+        return decorator
+
+    def subscribe(self, event_type: str, handler: EventHandler) -> None:
+        """Programmatically subscribe a handler to an event type."""
+        self._handlers[event_type].append(handler)
+
+    async def emit(
+        self,
+        event_type: str,
+        payload: dict[str, Any] | None = None,
+        *,
+        source_module: str = "",
+    ) -> None:
+        """
+        Emit an event to all registered handlers.
+
+        Handlers run concurrently via asyncio.gather.
+        Exceptions in one handler don't block others.
+        """
+        event = Event(
+            event_type=event_type,
+            payload=payload or {},
+            source_module=source_module,
+        )
+
+        handlers = self._handlers.get(event_type, [])
+        if not handlers:
+            logger.debug("No handlers for event '%s'", event_type)
+            return
+
+        logger.info(
+            "Emitting '%s' to %d handler(s) [id=%s]",
+            event_type,
+            len(handlers),
+            event.event_id,
+        )
+
+        results = await asyncio.gather(
+            *(handler(event) for handler in handlers),
+            return_exceptions=True,
+        )
+
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                logger.error(
+                    "Handler %s failed for event '%s': %s",
+                    handlers[i].__name__,
+                    event_type,
+                    result,
+                    exc_info=result,
+                )
+
+
+# ── Singleton ────────────────────────────────────────────────
+event_bus = EventBus()

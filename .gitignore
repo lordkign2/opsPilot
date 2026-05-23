@@ -1,0 +1,43 @@
+# ─── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ─── Virtual Environments ───────────────────────────────────
+venv/
+.venv/
+env/
+
+# ─── IDE ─────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Environment ─────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Docker ──────────────────────────────────────────────────
+docker/volumes/
+
+# ─── Testing ─────────────────────────────────────────────────
+.coverage
+htmlcov/
+.pytest_cache/
+
+# ─── Alembic ─────────────────────────────────────────────────
+migrations/versions/*.pyc
+
+# ─── OS ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.kiro
