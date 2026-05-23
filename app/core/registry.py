@@ -66,6 +66,7 @@ def register_event_handlers() -> None:
     """
     import app.modules.auth.events  # noqa: F401
     import app.modules.businesses.events  # noqa: F401
+    import app.modules.audit.events  # noqa: F401
 
     # Future:
     # import app.modules.customers.events  # noqa: F401
