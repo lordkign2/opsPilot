@@ -10,17 +10,20 @@ This document outlines the architectural patterns, engineering standards, and se
 
 ## 1. Core Architecture & Layering
 
-### 1.1 Strict Layering
+### 1.1 Strict Layering / Clean Architecture
 **[REQUIRED]** The application enforces a strict three-tier architecture: Router → Service → Repository. 
-- **Routers** handle HTTP concerns (parsing, validation, response formatting).
-- **Services** contain business logic, orchestration, and event emission.
-- **Repositories** handle database interactions.
+- **API Layer (Routers)** handle HTTP concerns (request parsing, validation, response formatting).
+- **Service Layer** contains core business logic, orchestration, rules, and event emission.
+- **Repository Layer** abstracts database interactions (e.g., SQLAlchemy queries).
 
 **[PROHIBITED]** Do not inject database sessions (`AsyncSession`) directly into routers. Do not write business logic or execute queries in the routing layer.
 
 ### 1.2 Centralised Registration
 **[OBSERVED]** The application uses `app.core.registry.py` to mount all module routers and event handlers.
 **[REQUIRED]** Do not modify `main.py` when adding a new module. All new module routers MUST be registered in `app.core.registry`.
+
+### 1.3 Dependency Injection (DI)
+**[REQUIRED]** Use FastAPI's built-in DI system (`Depends`) to manage database sessions, authentication context, and external clients. Do not instantiate singletons globally where request scope is required.
 
 ---
 
@@ -41,29 +44,50 @@ This document outlines the architectural patterns, engineering standards, and se
 
 ---
 
-## 3. Security & Authentication
+## 3. Security & Compliance
 
-### 3.1 Token Invalidation
+### 3.1 Authentication & Authorization
+**[OBSERVED]** OAuth2 with JWT tokens is implemented.
+**[REQUIRED]** All secure endpoints must enforce JWT access. Implement Role-Based Access Control (RBAC) via middleware or dependencies for complex permission structures.
+
+### 3.2 Token Invalidation
 **[OBSERVED]** Redis is used to blacklist JWTs upon logout.
 **[REQUIRED]** Every state-changing authentication event (logout, password change) MUST blacklist the current tokens in Redis. 
 
-### 3.2 Secret Management
-**[DEBT]** Passwords and secrets are currently typed as standard `str` in `app.core.config.py`.
-**[RECOMMENDED]** Migrate sensitive configuration fields (e.g., `JWT_SECRET_KEY`, `DATABASE_URL`) to Pydantic's `SecretStr` to prevent accidental logging or exposure in memory dumps.
+### 3.3 Secret & Environment Management
+**[REQUIRED]** All sensitive configurations (e.g., `JWT_SECRET_KEY`, `DATABASE_URL`) MUST be typed as Pydantic's `SecretStr` to prevent accidental logging or exposure in memory dumps.
+**[REQUIRED]** Use environment-level encryption and secrets management solutions (e.g., AWS Secrets Manager, HashiCorp Vault) in production instead of plain `.env` files.
 
-### 3.3 Password Hashing
+### 3.4 Enterprise Compliance (SOC2 / GDPR)
+**[REQUIRED]** The system must maintain detailed audit trails with user attribution and timestamping for all critical mutation operations. All audit events must be logged securely and immutably to comply with SOC2 and GDPR.
+
+### 3.5 Password Hashing
 **[REQUIRED]** All password hashes MUST use the centralised `hash_password` and `verify_password` utilities in `app.core.security`. Custom crypto implementations are forbidden.
 
 ---
 
-## 4. Error Handling & Responses
+## 4. Production Deployment & Scalability
 
-### 4.1 Response Envelopes
+### 4.1 Server Stack
+**[REQUIRED]** Run applications using Gunicorn with Uvicorn workers (`uvicorn.workers.UvicornWorker`) to ensure horizontal scaling across CPU cores in production.
+
+### 4.2 Asynchronous I/O Discipline
+**[REQUIRED]** Use `async/await` strictly for I/O-bound tasks (database, external APIs, Redis).
+**[DANGEROUS]** Avoid using `async` for purely CPU-bound tasks (e.g., heavy crypto, image processing). Offload CPU-bound work to background workers (like Celery) or thread pools to prevent blocking the async event loop.
+
+### 4.3 API Gateway
+**[RECOMMENDED]** For large-scale enterprise deployments, position an API Gateway (e.g., Kong, Zuplo) in front of the FastAPI application to manage rate-limiting, edge security, WAF, and cross-service observability.
+
+---
+
+## 5. Error Handling & Responses
+
+### 5.1 Response Envelopes
 **[OBSERVED]** A unified response format exists in `app.shared.response.py`.
 **[REQUIRED]** All successful API responses MUST be wrapped using `success_response` or `paginated_response`. 
 **[PROHIBITED]** Do not return raw Pydantic models, dicts, or lists directly from route handlers.
 
-### 4.2 Exception Management
+### 5.2 Exception Management
 **[OBSERVED]** A custom exception hierarchy descends from `OpsPilotException` in `app.core.exceptions`.
 **[REQUIRED]** Raise specific domain exceptions (e.g., `NotFoundError`, `UnauthorizedError`). The global exception handler will automatically translate these into standard JSON error envelopes.
 **[DANGEROUS]** Do not catch generic `Exception` objects in business logic without re-raising, as it masks underlying system failures and prevents the global error handler from logging them correctly.
@@ -71,26 +95,31 @@ This document outlines the architectural patterns, engineering standards, and se
 
 ---
 
-## 5. Observability & Auditing
+## 6. Observability & Auditing
 
-### 5.1 Logging Discipline
+### 6.1 Logging Discipline
 **[REQUIRED]** Use the application logger (`get_logger(__name__)`).
 **[PROHIBITED]** The use of `print()` statements for debugging or output is banned in production code.
 
-### 5.2 Event-Driven Side Effects
+### 6.2 Event-Driven Side Effects
 **[OBSERVED]** An asynchronous event bus exists (`app.core.events`).
-**[RECOMMENDED]** Use the event bus for all non-critical side effects (e.g., sending welcome emails, triggering analytics). Do not block the primary HTTP request lifecycle for these tasks.
+**[REQUIRED]** Use the event bus for all non-critical side effects (e.g., sending welcome emails, triggering analytics). Do not block the primary HTTP request lifecycle for these tasks.
 
 ---
 
-## 6. API Design Standards
+## 7. Code Quality & Tooling
 
-### 6.1 Pagination
-**[REQUIRED]** Any endpoint returning a list of resources MUST support pagination (`offset`, `limit`). Do not execute unbounded `SELECT *` queries.
+### 7.1 Type Safety
+**[REQUIRED]** Strictly enforce Python type hints across the entire codebase. Use Pydantic models for all data validation and serialization.
 
-### 6.2 Naming Conventions
-**[REQUIRED]** Endpoints must follow RESTful plural noun conventions (e.g., `/api/v1/businesses`, not `/api/v1/getBusiness`).
-**[REQUIRED]** Database schemas must use `snake_case` column names and `plural` table names.
+### 7.2 Static Analysis
+**[REQUIRED]** The codebase must integrate static analysis tools. Use Ruff for linting, MyPy for static typing, and Pre-commit hooks to maintain a clean and consistent repository.
+
+### 7.3 Testing Strategy
+**[REQUIRED]** Maintain high reliability with a comprehensive testing strategy. Write unit tests with Pytest and ensure critical paths are covered by end-to-end (e2e) tests.
+
+### 7.4 Package Management
+**[REQUIRED]** Use modern tools like **Poetry** for predictable and deterministic dependency management. Standard `requirements.txt` or `setuptools` are legacy and deprecated for this project.
 
 ---
 
