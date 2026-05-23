@@ -20,13 +20,17 @@ from app.db.base import Base
 # Import ALL models so Alembic sees them for autogeneration
 from app.modules.auth.models import User  # noqa: F401
 from app.modules.businesses.models import Business  # noqa: F401
+from app.modules.customers.models import Customer  # noqa: F401
+from app.modules.orders.models import Order  # noqa: F401
+from app.modules.payments.models import Payment  # noqa: F401
+from app.modules.audit.models import AuditLog  # noqa: F401
 
 # ── Alembic Config ───────────────────────────────────────────
 config = context.config
 settings = get_settings()
 
 # Override sqlalchemy.url from application settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.get_secret_value())
 
 # Set up Python logging from alembic.ini
 if config.config_file_name is not None:
