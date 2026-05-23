@@ -8,6 +8,7 @@ for injection into protected routes.
 from __future__ import annotations
 
 from typing import Annotated
+import uuid
 
 import redis.asyncio as aioredis
 from fastapi import Depends, Header
@@ -81,3 +82,13 @@ def require_role(*roles: UserRole):
 # ── Type Aliases ─────────────────────────────────────────────
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+
+async def get_current_business_id(
+    user: User = Depends(get_current_active_user),
+) -> uuid.UUID:
+    """Ensures the user belongs to a business and returns the business ID."""
+    if not user.business_id:
+        raise ForbiddenError("You must be assigned to a business to perform this action.")
+    return user.business_id
+
+CurrentBusinessId = Annotated[uuid.UUID, Depends(get_current_business_id)]
