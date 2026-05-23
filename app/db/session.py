@@ -21,7 +21,7 @@ settings = get_settings()
 
 # ── Engine ───────────────────────────────────────────────────
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    settings.DATABASE_URL.get_secret_value(),
     echo=settings.DATABASE_ECHO,
     pool_size=settings.DATABASE_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_OVERFLOW,

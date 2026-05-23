@@ -14,7 +14,7 @@ from app.core.config import get_settings
 settings = get_settings()
 
 redis_client = aioredis.from_url(
-    settings.REDIS_URL,
+    settings.REDIS_URL.get_secret_value(),
     encoding="utf-8",
     decode_responses=True,
 )

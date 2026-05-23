@@ -12,7 +12,7 @@ from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # ── Paths ────────────────────────────────────────────────────
@@ -54,16 +54,16 @@ class Settings(BaseSettings):
     ]
 
     # ── Database ─────────────────────────────────────────────
-    DATABASE_URL: str
+    DATABASE_URL: SecretStr
     DATABASE_ECHO: bool = False
     DATABASE_POOL_SIZE: int = 20
     DATABASE_MAX_OVERFLOW: int = 10
 
     # ── Redis ────────────────────────────────────────────────
-    REDIS_URL: str
+    REDIS_URL: SecretStr
 
     # ── JWT ──────────────────────────────────────────────────
-    JWT_SECRET_KEY: str
+    JWT_SECRET_KEY: SecretStr
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str | None = None
 
     # ── Paystack (future) ────────────────────────────────────
-    PAYSTACK_SECRET_KEY: str | None = None
+    PAYSTACK_SECRET_KEY: SecretStr | None = None
     PAYSTACK_PUBLIC_KEY: str | None = None
 
     # ── Validators ───────────────────────────────────────────
