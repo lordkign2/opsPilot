@@ -1,0 +1,20 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: opspilot-backend
+    url: http://backend:8000
+    routes:
+      - name: opspilot-api
+        paths:
+          - /api/v1
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 60
+          policy: local
+      - name: correlation-id
+        config:
+          header_name: X-Request-ID
+          generator: uuid
+          echo_downstream: true
