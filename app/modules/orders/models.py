@@ -4,17 +4,20 @@ OpsPilot — Orders Module: ORM Models.
 
 import enum
 import uuid
-from sqlalchemy import String, Text, Numeric, ForeignKey, Enum
+
+from sqlalchemy import Enum, ForeignKey, Numeric, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
 
 class OrderStatus(str, enum.Enum):
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+
 
 class Order(Base):
     """Represents a customer order."""
@@ -25,7 +28,7 @@ class Order(Base):
         Enum(OrderStatus, name="order_status", create_constraint=True),
         default=OrderStatus.PENDING,
         nullable=False,
-        index=True
+        index=True,
     )
     total_amount: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -13,11 +13,12 @@ from pydantic import BaseModel, Field
 
 from app.modules.businesses.models import SubscriptionPlan
 
-
 # ── Create / Update ──────────────────────────────────────────
+
 
 class CreateBusinessRequest(BaseModel):
     """Payload to create a new business (standalone, not via registration)."""
+
     name: str = Field(..., min_length=2, max_length=200)
     description: str | None = Field(None, max_length=1000)
     industry: str | None = Field(None, max_length=100)
@@ -28,6 +29,7 @@ class CreateBusinessRequest(BaseModel):
 
 class UpdateBusinessRequest(BaseModel):
     """Partial update payload for a business."""
+
     name: str | None = Field(None, min_length=2, max_length=200)
     description: str | None = Field(None, max_length=1000)
     industry: str | None = Field(None, max_length=100)
@@ -39,8 +41,10 @@ class UpdateBusinessRequest(BaseModel):
 
 # ── Responses ────────────────────────────────────────────────
 
+
 class BusinessResponse(BaseModel):
     """Full business representation."""
+
     id: uuid.UUID
     name: str
     slug: str
@@ -60,6 +64,7 @@ class BusinessResponse(BaseModel):
 
 class BusinessBriefResponse(BaseModel):
     """Minimal business info for embedding in other responses."""
+
     id: uuid.UUID
     name: str
     slug: str

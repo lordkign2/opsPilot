@@ -6,17 +6,17 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.modules.auth.dependencies import CurrentBusinessId
 from app.modules.ai.dependencies import AIServiceDep
 from app.modules.ai.schemas import (
     AIChatRequest,
     AIChatResponse,
-    AISummaryRequest,
-    AISummaryResponse,
-    AIRecommendationsResponse,
     AICustomerInsightsRequest,
     AICustomerInsightsResponse,
+    AIRecommendationsResponse,
+    AISummaryRequest,
+    AISummaryResponse,
 )
+from app.modules.auth.dependencies import CurrentBusinessId
 from app.shared.response import success_response
 
 router = APIRouter(prefix="/ai", tags=["AI"])
@@ -32,7 +32,7 @@ async def chat_with_assistant(
     reply = await ai_service.chat_with_assistant(business_id, payload.message)
     return success_response(
         data=AIChatResponse(reply=reply).model_dump(),
-        message="AI assistant response generated successfully."
+        message="AI assistant response generated successfully.",
     )
 
 
@@ -46,7 +46,7 @@ async def generate_business_summary(
     summary = await ai_service.generate_business_summary(business_id, payload.timeframe)
     return success_response(
         data=AISummaryResponse(summary=summary).model_dump(),
-        message="Operations summary generated successfully."
+        message="Operations summary generated successfully.",
     )
 
 
@@ -59,7 +59,7 @@ async def generate_recommendations(
     recs = await ai_service.generate_recommendations(business_id)
     return success_response(
         data=AIRecommendationsResponse(recommendations=recs).model_dump(),
-        message="Operational recommendations compiled successfully."
+        message="Operational recommendations compiled successfully.",
     )
 
 
@@ -70,11 +70,12 @@ async def generate_customer_insights(
     ai_service: AIServiceDep,
 ):
     """Analyze behavior segmentation and churn likelihood for a specific customer."""
-    insights = await ai_service.generate_customer_insights(business_id, payload.customer_id)
+    insights = await ai_service.generate_customer_insights(
+        business_id, payload.customer_id
+    )
     return success_response(
         data=AICustomerInsightsResponse(
-            customer_id=payload.customer_id,
-            insights=insights
+            customer_id=payload.customer_id, insights=insights
         ).model_dump(),
-        message="Customer behavioral insights compiled successfully."
+        message="Customer behavioral insights compiled successfully.",
     )

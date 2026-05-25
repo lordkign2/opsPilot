@@ -12,7 +12,7 @@ from collections.abc import AsyncGenerator
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import get_settings
 from app.db.base import Base
@@ -22,7 +22,9 @@ from app.main import app
 settings = get_settings()
 
 # Use a separate test database (in-memory SQLite for speed, or test Postgres)
-TEST_DATABASE_URL = settings.DATABASE_URL.get_secret_value().replace("opspilot_db", "opspilot_test_db")
+TEST_DATABASE_URL = settings.DATABASE_URL.get_secret_value().replace(
+    "opspilot_db", "opspilot_test_db"
+)
 
 
 @pytest.fixture(scope="session")
@@ -37,9 +39,11 @@ def event_loop():
 async def test_engine():
     """Create a test database engine."""
     from sqlalchemy.pool import NullPool
+
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool, echo=False)
-    
+
     from app.db.session import async_session_factory
+
     async_session_factory.configure(bind=engine)
 
     async with engine.begin() as conn:
@@ -49,6 +53,7 @@ async def test_engine():
 
     async with engine.begin() as conn:
         from sqlalchemy import text
+
         await conn.execute(text("DROP SCHEMA public CASCADE;"))
         await conn.execute(text("CREATE SCHEMA public;"))
 
@@ -77,14 +82,18 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
         yield db_session
 
     from app.db.redis import get_redis
+
     async def override_get_redis():
         class MockRedis:
             async def get(self, *args, **kwargs):
                 return None
+
             async def set(self, *args, **kwargs):
                 return None
+
             async def setex(self, *args, **kwargs):
                 return None
+
         yield MockRedis()
 
     app.dependency_overrides[get_db] = override_get_db

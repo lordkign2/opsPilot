@@ -12,9 +12,9 @@ methods in every repository file.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Generic, Sequence, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
-from sqlalchemy import func, select, Select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import Base
@@ -37,7 +37,7 @@ class BaseRepository(Generic[ModelType]):
                 ...
     """
 
-    def __init__(self, model: Type[ModelType], db: AsyncSession) -> None:
+    def __init__(self, model: type[ModelType], db: AsyncSession) -> None:
         self.model = model
         self.db = db
 

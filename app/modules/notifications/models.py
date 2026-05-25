@@ -5,6 +5,7 @@ OpsPilot — Notifications Module: ORM Models.
 from __future__ import annotations
 
 import uuid
+
 from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -15,7 +16,7 @@ from app.db.base import Base
 class Notification(Base):
     """
     Represents an in-app workspace notification.
-    
+
     Can be scoped to a whole business workspace or specifically
     targeted to a single user.
     """

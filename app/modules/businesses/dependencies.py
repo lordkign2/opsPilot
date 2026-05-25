@@ -13,7 +13,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.modules.auth.dependencies import CurrentUser
-from app.modules.auth.models import User
 from app.modules.businesses.models import Business
 from app.modules.businesses.service import BusinessService
 

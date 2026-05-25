@@ -3,7 +3,9 @@ OpsPilot — Audit Module: Service.
 """
 
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.modules.audit.models import AuditLog
+
 
 class AuditService:
     def __init__(self, db: AsyncSession):
@@ -21,6 +23,7 @@ class AuditService:
     ) -> AuditLog:
         """Record an immutable audit event."""
         import uuid
+
         log_entry = AuditLog(
             action=action,
             module=module,

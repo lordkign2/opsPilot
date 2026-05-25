@@ -32,6 +32,7 @@ logger = get_logger("main")
 
 # ── Lifecycle ────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application startup and shutdown hooks."""
@@ -78,6 +79,7 @@ app.add_middleware(RateLimitMiddleware, default_limit=60, auth_limit=10)
 
 # ── Global Exception Handlers ───────────────────────────────
 
+
 @app.exception_handler(OpsPilotException)
 async def opspilot_exception_handler(
     request: Request, exc: OpsPilotException
@@ -95,9 +97,7 @@ async def opspilot_exception_handler(
 
 
 @app.exception_handler(Exception)
-async def generic_exception_handler(
-    request: Request, exc: Exception
-) -> JSONResponse:
+async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions."""
     logger.error("Unhandled exception: %s", exc, exc_info=True)
     return JSONResponse(
@@ -115,6 +115,7 @@ register_routers(app)
 
 
 # ── Health Check ─────────────────────────────────────────────
+
 
 @app.get("/health", tags=["Health"])
 async def health_check():

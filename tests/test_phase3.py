@@ -5,22 +5,23 @@ OpsPilot — Phase 3 Test Suite.
 from __future__ import annotations
 
 import uuid
+
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+import app.modules.notifications.events  # noqa: F401
+from app.core.events import event_bus
+from app.db.session import async_session_factory
+from app.modules.ai.models import AILog
 from app.modules.auth.models import User, UserRole
 from app.modules.auth.service import AuthService
 from app.modules.businesses.models import Business
 from app.modules.customers.models import Customer
+from app.modules.notifications.models import Notification
 from app.modules.orders.models import Order, OrderStatus
 from app.modules.payments.models import Payment, PaymentStatus
-from app.modules.notifications.models import Notification
-from app.modules.ai.models import AILog
-from app.core.events import event_bus
-from app.db.session import async_session_factory
-import app.modules.notifications.events  # noqa: F401
 
 
 @pytest.fixture
@@ -111,7 +112,9 @@ async def setup_test_data(db_session: AsyncSession) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_notifications_lifecycle(client: AsyncClient, setup_test_data: dict, db_session: AsyncSession):
+async def test_notifications_lifecycle(
+    client: AsyncClient, setup_test_data: dict, db_session: AsyncSession
+):
     """Test Notifications list, read status modification and read all alerts endpoints."""
     token = setup_test_data["token"]
     business = setup_test_data["business"]
@@ -144,7 +147,9 @@ async def test_notifications_lifecycle(client: AsyncClient, setup_test_data: dic
     assert res_data["meta"]["total"] >= 2
 
     # 2. Mark specific notification read
-    patch_response = await client.patch(f"/api/v1/notifications/{n1.id}/read", headers=headers)
+    patch_response = await client.patch(
+        f"/api/v1/notifications/{n1.id}/read", headers=headers
+    )
     assert patch_response.status_code == 200
     assert patch_response.json()["data"]["read"] is True
 
@@ -186,7 +191,9 @@ async def test_analytics_endpoints(client: AsyncClient, setup_test_data: dict):
 
 
 @pytest.mark.asyncio
-async def test_ai_mock_fallback_endpoints(client: AsyncClient, setup_test_data: dict, db_session: AsyncSession):
+async def test_ai_mock_fallback_endpoints(
+    client: AsyncClient, setup_test_data: dict, db_session: AsyncSession
+):
     """Test AI assistant endpoints using the rich mock fallback system (no API key configured)."""
     token = setup_test_data["token"]
     customer = setup_test_data["customer"]
@@ -197,10 +204,12 @@ async def test_ai_mock_fallback_endpoints(client: AsyncClient, setup_test_data: 
     response = await client.post("/api/v1/ai/chat", json=chat_payload, headers=headers)
     assert response.status_code == 200
     assert "reply" in response.json()["data"]
-    
+
     # 2. Summary Endpoint
     summary_payload = {"timeframe": "weekly"}
-    response = await client.post("/api/v1/ai/summary", json=summary_payload, headers=headers)
+    response = await client.post(
+        "/api/v1/ai/summary", json=summary_payload, headers=headers
+    )
     assert response.status_code == 200
     assert "summary" in response.json()["data"]
 
@@ -212,7 +221,9 @@ async def test_ai_mock_fallback_endpoints(client: AsyncClient, setup_test_data: 
 
     # 4. Customer Insights Endpoint
     insights_payload = {"customer_id": str(customer.id)}
-    response = await client.post("/api/v1/ai/customer-insights", json=insights_payload, headers=headers)
+    response = await client.post(
+        "/api/v1/ai/customer-insights", json=insights_payload, headers=headers
+    )
     assert response.status_code == 200
     assert response.json()["data"]["customer_id"] == str(customer.id)
     assert "insights" in response.json()["data"]
@@ -250,7 +261,7 @@ async def test_event_driven_notifications(setup_test_data: dict):
         assert len(notifications) == 1
         assert "25,000.00" in notifications[0].message
         assert notifications[0].title == "New Order Created"
-        
+
         # Clean up the test notification so it doesn't pollute subsequent tests
         await db.delete(notifications[0])
         await db.commit()

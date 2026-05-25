@@ -7,11 +7,11 @@ for injection into protected routes.
 
 from __future__ import annotations
 
-from typing import Annotated
 import uuid
+from typing import Annotated
 
 import redis.asyncio as aioredis
-from fastapi import Depends, Header
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -58,6 +58,7 @@ async def get_current_active_user(
 
 # ── Role-Based Access ────────────────────────────────────────
 
+
 def require_role(*roles: UserRole):
     """
     Dependency factory that restricts access to users with
@@ -83,12 +84,16 @@ def require_role(*roles: UserRole):
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 
+
 async def get_current_business_id(
     user: User = Depends(get_current_active_user),
 ) -> uuid.UUID:
     """Ensures the user belongs to a business and returns the business ID."""
     if not user.business_id:
-        raise ForbiddenError("You must be assigned to a business to perform this action.")
+        raise ForbiddenError(
+            "You must be assigned to a business to perform this action."
+        )
     return user.business_id
+
 
 CurrentBusinessId = Annotated[uuid.UUID, Depends(get_current_business_id)]

@@ -7,19 +7,17 @@ Routes are thin — they delegate to the AuthService.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Header
 
 from app.modules.auth.dependencies import (
     AuthServiceDep,
     CurrentUser,
-    get_auth_service,
 )
 from app.modules.auth.schemas import (
     ChangePasswordRequest,
     LoginRequest,
     RefreshTokenRequest,
     RegisterRequest,
-    TokenResponse,
     UserResponse,
 )
 from app.shared.response import success_response
@@ -28,6 +26,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 # ── POST /register ───────────────────────────────────────────
+
 
 @router.post(
     "/register",
@@ -55,6 +54,7 @@ async def register(
 
 # ── POST /login ──────────────────────────────────────────────
 
+
 @router.post(
     "/login",
     response_model=None,
@@ -77,6 +77,7 @@ async def login(
 
 # ── POST /refresh ────────────────────────────────────────────
 
+
 @router.post(
     "/refresh",
     response_model=None,
@@ -95,6 +96,7 @@ async def refresh_token(
 
 
 # ── POST /logout ─────────────────────────────────────────────
+
 
 @router.post(
     "/logout",
@@ -117,6 +119,7 @@ async def logout(
 
 # ── GET /me ──────────────────────────────────────────────────
 
+
 @router.get(
     "/me",
     response_model=None,
@@ -130,6 +133,7 @@ async def get_me(current_user: CurrentUser):
 
 
 # ── PUT /change-password ─────────────────────────────────────
+
 
 @router.put(
     "/change-password",

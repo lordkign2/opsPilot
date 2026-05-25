@@ -3,14 +3,16 @@ OpsPilot — Orders Module: Service.
 """
 
 import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.events import event_bus
-from app.core.exceptions import NotFoundError, BadRequestError
+from app.core.exceptions import NotFoundError
+from app.modules.customers.repository import CustomerRepository
 from app.modules.orders.models import Order, OrderStatus
 from app.modules.orders.repository import OrderRepository
 from app.modules.orders.schemas import OrderCreate, OrderStatusUpdate
-from app.modules.customers.repository import CustomerRepository
+
 
 class OrderService:
     def __init__(self, db: AsyncSession):
@@ -20,9 +22,13 @@ class OrderService:
 
     async def create_order(self, business_id: uuid.UUID, payload: OrderCreate) -> Order:
         """Create a new order for a customer."""
-        customer = await self.customer_repo.get_one_by(id=payload.customer_id, business_id=business_id)
+        customer = await self.customer_repo.get_one_by(
+            id=payload.customer_id, business_id=business_id
+        )
         if not customer:
-            raise NotFoundError("Customer not found or does not belong to your business.")
+            raise NotFoundError(
+                "Customer not found or does not belong to your business."
+            )
 
         order = Order(
             business_id=business_id,
@@ -53,10 +59,12 @@ class OrderService:
             raise NotFoundError("Order not found.")
         return order
 
-    async def update_status(self, business_id: uuid.UUID, order_id: uuid.UUID, payload: OrderStatusUpdate) -> Order:
+    async def update_status(
+        self, business_id: uuid.UUID, order_id: uuid.UUID, payload: OrderStatusUpdate
+    ) -> Order:
         """Update the status of an order."""
         order = await self.get_order(business_id, order_id)
-        
+
         if order.status == payload.status:
             return order
 

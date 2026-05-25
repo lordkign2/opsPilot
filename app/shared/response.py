@@ -21,6 +21,7 @@ T = TypeVar("T")
 
 class PaginationMeta(BaseModel):
     """Pagination metadata included in list responses."""
+
     page: int
     per_page: int
     total: int
@@ -29,6 +30,7 @@ class PaginationMeta(BaseModel):
 
 class APIResponse(BaseModel, Generic[T]):
     """Standard API response wrapper."""
+
     success: bool = True
     message: str = "Request successful."
     data: T | None = None

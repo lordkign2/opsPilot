@@ -5,18 +5,21 @@ OpsPilot — Notifications Module: Repository.
 from __future__ import annotations
 
 import uuid
+
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.shared.base_repository import BaseRepository
 from app.modules.notifications.models import Notification
+from app.shared.base_repository import BaseRepository
 
 
 class NotificationRepository(BaseRepository[Notification]):
     def __init__(self, db: AsyncSession):
         super().__init__(Notification, db)
 
-    async def mark_all_read(self, business_id: uuid.UUID, user_id: uuid.UUID | None = None) -> int:
+    async def mark_all_read(
+        self, business_id: uuid.UUID, user_id: uuid.UUID | None = None
+    ) -> int:
         """Mark all notifications as read for a business (and user optionally)."""
         stmt = (
             update(Notification)
@@ -39,11 +42,13 @@ class NotificationRepository(BaseRepository[Notification]):
         limit: int = 20,
     ) -> tuple[list[Notification], int]:
         """Fetch notifications that are either workspace-wide (user_id is Null) or targeted to this user."""
-        from sqlalchemy import or_, func
+        from sqlalchemy import func, or_
 
         stmt = select(Notification).where(Notification.business_id == business_id)
         if user_id:
-            stmt = stmt.where(or_(Notification.user_id == user_id, Notification.user_id.is_(None)))
+            stmt = stmt.where(
+                or_(Notification.user_id == user_id, Notification.user_id.is_(None))
+            )
         else:
             stmt = stmt.where(Notification.user_id.is_(None))
 

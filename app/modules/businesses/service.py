@@ -59,7 +59,9 @@ class BusinessService:
         if user.business_id != business.id:
             raise ForbiddenError("You do not belong to this business.")
         if user.role not in (UserRole.OWNER, UserRole.MANAGER):
-            raise ForbiddenError("Only owners and managers can update business details.")
+            raise ForbiddenError(
+                "Only owners and managers can update business details."
+            )
 
         # Apply partial updates
         update_data = payload.model_dump(exclude_unset=True)

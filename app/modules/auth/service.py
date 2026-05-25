@@ -12,7 +12,6 @@ import uuid
 import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import get_settings
 from app.core.events import event_bus
 from app.core.exceptions import (
     DuplicateEmailError,
@@ -159,8 +158,8 @@ class AuthService:
         """
         try:
             payload = decode_token(refresh_token)
-        except JWTError:
-            raise InvalidTokenError()
+        except JWTError as e:
+            raise InvalidTokenError() from e
 
         if payload.get("type") != "refresh":
             raise InvalidTokenError("Expected a refresh token.")
@@ -207,8 +206,8 @@ class AuthService:
         """Decode a token and return the associated user."""
         try:
             payload = decode_token(token)
-        except JWTError:
-            raise InvalidTokenError()
+        except JWTError as e:
+            raise InvalidTokenError() from e
 
         if payload.get("type") != "access":
             raise InvalidTokenError("Expected an access token.")
@@ -230,9 +229,7 @@ class AuthService:
 
     # ── Change Password ──────────────────────────────────────
 
-    async def change_password(
-        self, user: User, payload: ChangePasswordRequest
-    ) -> None:
+    async def change_password(self, user: User, payload: ChangePasswordRequest) -> None:
         """Change a user's password after verifying the current one."""
         if not verify_password(payload.current_password, user.password_hash):
             raise InvalidCredentialsError("Current password is incorrect.")
