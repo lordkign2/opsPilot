@@ -71,7 +71,7 @@ class Business(Base):
     # ── Ownership ────────────────────────────────────────────
     owner_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="SET NULL"),
+        ForeignKey("users.id", ondelete="SET NULL", use_alter=True, name="fk_businesses_owner_id_businesses"),
         nullable=True,
     )
 

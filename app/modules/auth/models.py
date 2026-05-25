@@ -67,7 +67,7 @@ class User(Base):
     # ── Multi-Tenancy ────────────────────────────────────────
     business_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("businesses.id", ondelete="CASCADE"),
+        ForeignKey("businesses.id", ondelete="CASCADE", use_alter=True, name="fk_users_business_id_users"),
         nullable=True,
         index=True,
     )
@@ -76,5 +76,6 @@ class User(Base):
     business = relationship(
         "Business",
         back_populates="members",
+        foreign_keys="[User.business_id]",
         lazy="selectin",
     )

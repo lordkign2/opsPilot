@@ -46,15 +46,15 @@ def register_routers(app: FastAPI) -> None:
     from app.modules.payments.routes import router as payments_router
     api_v1_router.include_router(payments_router)
 
-    # ── Future modules (Phase 3) ─────────────────────────────
-    # from app.modules.ai.routes import router as ai_router
-    # api_v1_router.include_router(ai_router)
-    #
-    # from app.modules.analytics.routes import router as analytics_router
-    # api_v1_router.include_router(analytics_router)
-    #
-    # from app.modules.notifications.routes import router as notifications_router
-    # api_v1_router.include_router(notifications_router)
+    # ── Phase 3 Modules ──────────────────────────────────────
+    from app.modules.ai.routes import router as ai_router
+    api_v1_router.include_router(ai_router)
+
+    from app.modules.analytics.routes import router as analytics_router
+    api_v1_router.include_router(analytics_router)
+
+    from app.modules.notifications.routes import router as notifications_router
+    api_v1_router.include_router(notifications_router)
     
     # ── Mount the v1 router onto the app ─────────────────────
     app.include_router(api_v1_router)
@@ -73,6 +73,4 @@ def register_event_handlers() -> None:
     import app.modules.customers.events  # noqa: F401
     import app.modules.orders.events  # noqa: F401
     import app.modules.payments.events  # noqa: F401
-
-    # Future:
-    # import app.modules.notifications.events  # noqa: F401
+    import app.modules.notifications.events  # noqa: F401

@@ -24,6 +24,8 @@ from app.modules.customers.models import Customer  # noqa: F401
 from app.modules.orders.models import Order  # noqa: F401
 from app.modules.payments.models import Payment  # noqa: F401
 from app.modules.audit.models import AuditLog  # noqa: F401
+from app.modules.notifications.models import Notification  # noqa: F401
+from app.modules.ai.models import AILog  # noqa: F401
 
 # ── Alembic Config ───────────────────────────────────────────
 config = context.config
