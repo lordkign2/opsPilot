@@ -22,7 +22,7 @@ from app.main import app
 settings = get_settings()
 
 # Use a separate test database (in-memory SQLite for speed, or test Postgres)
-TEST_DATABASE_URL = settings.DATABASE_URL.replace("opspilot_db", "opspilot_test_db")
+TEST_DATABASE_URL = settings.DATABASE_URL.get_secret_value().replace("opspilot_db", "opspilot_test_db")
 
 
 @pytest.fixture(scope="session")
@@ -36,7 +36,11 @@ def event_loop():
 @pytest_asyncio.fixture(scope="session")
 async def test_engine():
     """Create a test database engine."""
-    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+    from sqlalchemy.pool import NullPool
+    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool, echo=False)
+    
+    from app.db.session import async_session_factory
+    async_session_factory.configure(bind=engine)
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -44,7 +48,9 @@ async def test_engine():
     yield engine
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        from sqlalchemy import text
+        await conn.execute(text("DROP SCHEMA public CASCADE;"))
+        await conn.execute(text("CREATE SCHEMA public;"))
 
     await engine.dispose()
 
@@ -70,7 +76,19 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
         yield db_session
 
+    from app.db.redis import get_redis
+    async def override_get_redis():
+        class MockRedis:
+            async def get(self, *args, **kwargs):
+                return None
+            async def set(self, *args, **kwargs):
+                return None
+            async def setex(self, *args, **kwargs):
+                return None
+        yield MockRedis()
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_redis] = override_get_redis
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
