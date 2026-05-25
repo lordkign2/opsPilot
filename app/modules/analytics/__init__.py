@@ -1,0 +1,3 @@
+"""
+OpsPilot — Analytics Module.
+"""
