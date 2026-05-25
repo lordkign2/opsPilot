@@ -20,7 +20,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U opspilot -d opspilot_db"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -74,11 +74,8 @@ jobs:
         run: poetry run mypy app/
 
       - name: Create Test Database Catalog
-        env:
-          PGPASSWORD: opspilot_secret
         run: |
-          sudo apt-get update && sudo apt-get install -y postgresql-client
-          psql -h localhost -U opspilot -d opspilot_db -c "CREATE DATABASE opspilot_test_db;"
+          docker exec ${{ job.services.postgres.id }} psql -U opspilot -d opspilot_db -c "CREATE DATABASE opspilot_test_db;"
 
       - name: Apply Database Migrations
         env:
