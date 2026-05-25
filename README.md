@@ -20,6 +20,15 @@ For detailed engineering standards, refer to [RULES.md](RULES.md).
 - **Package Management**: Poetry
 - **Static Analysis**: Ruff, MyPy, Black, pre-commit
 
+## Core Modules
+
+The monolith backend consists of the following decoupled domain modules:
+- **Auth & Businesses**: Multi-tenant workspace onboarding, RBAC, and secure JWT verification.
+- **Customers, Orders & Payments**: Customer management, transactional order lifecycle, and Paystack payment verification.
+- **AI Engine (`app/modules/ai`)**: Sessionless AI operations chat assistant, Markdown performance summaries, and predictive recommendations. Falls back dynamically to local context-aware mock generators if `OPENAI_API_KEY` is not present.
+- **Notifications (`app/modules/notifications`)**: Workspace-wide and targeted user notifications dynamically triggered via decoupled system-wide events.
+- **Analytics (`app/modules/analytics`)**: High-performance aggregate queries providing overview metrics, revenue history, and order breakdown.
+
 ## Getting Started
 
 ### Prerequisites
@@ -47,7 +56,7 @@ For detailed engineering standards, refer to [RULES.md](RULES.md).
 
 4. **Start Infrastructure**:
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 5. **Run Migrations**:
@@ -60,6 +69,17 @@ For detailed engineering standards, refer to [RULES.md](RULES.md).
    poetry run uvicorn app.main:app --reload
    ```
 
+## Running Tests
+
+We maintain strict verification standards. Ensure the test database exists before executing pytest:
+```bash
+# Create the test catalog in PostgreSQL container
+docker exec opspilot-postgres psql -U opspilot -d opspilot_db -c "CREATE DATABASE opspilot_test_db;"
+
+# Run the test suite
+poetry run pytest tests/test_phase3.py
+```
+
 ## Production Deployment
 The application is designed to be run behind a reverse proxy/API Gateway (e.g., Kong) and served via Gunicorn with Uvicorn workers for optimal async performance:
 ```bash
@@ -70,3 +90,4 @@ gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
 - **SOC2 Audit Trails**: Critical actions are immutably logged via the internal `audit` module.
 - **Secret Management**: Sensitive variables are strictly typed as `SecretStr` to prevent memory leaks.
 - **Token Blacklisting**: JWTs are invalidated via Redis upon logout or password change.
+- **Multi-Tenant Scoping**: All aggregate queries and data modifications strictly filter results using verified JWT workspace boundaries to eliminate IDOR vulnerabilities.

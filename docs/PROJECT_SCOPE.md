@@ -163,10 +163,10 @@ This aligns directly with current SME operational habits.
 - `AIEvent`: id, business_id, event_type, payload
 
 ### Development Roadmap (30 Days)
-- **Week 1 — Foundation**: Authentication system, Database setup, Business onboarding, Dashboard skeleton
-- **Week 2 — Core Modules**: Customer management, Order management, Invoice generation, Basic analytics
-- **Week 3 — Real-Time Features**: WebSocket implementation, Live notifications, Activity feed, Real-time updates
-- **Week 4 — AI Layer**: AI assistant integration, Smart summaries, Automated reminders, Customer support chatbot
+- **Week 1 — Foundation [COMPLETED]**: Authentication system, Database setup, Business onboarding, Dashboard skeleton
+- **Week 2 — Core Modules [COMPLETED]**: Customer management, Order management, Invoice generation, Basic analytics
+- **Week 3 — Real-Time Features [COMPLETED]**: WebSocket implementation, Live notifications, Activity feed, Real-time updates
+- **Week 4 — AI Layer [COMPLETED]**: AI assistant integration, Smart summaries, Automated reminders, Customer support chatbot
 
 ### Business Model
 **Revenue Opportunities**
