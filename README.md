@@ -28,6 +28,8 @@ The monolith backend consists of the following decoupled domain modules:
 - **AI Engine (`app/modules/ai`)**: Sessionless AI operations chat assistant, Markdown performance summaries, and predictive recommendations. Falls back dynamically to local context-aware mock generators if `OPENAI_API_KEY` is not present.
 - **Notifications (`app/modules/notifications`)**: Workspace-wide and targeted user notifications dynamically triggered via decoupled system-wide events.
 - **Analytics (`app/modules/analytics`)**: High-performance aggregate queries providing overview metrics, revenue history, and order breakdown.
+- **WebSocket Gateway (`app/websocket`)**: Bidirectional real-time communication fabric bridging local system events to active user sockets. Supports workspace presence tracking, current resource-view auditing, and streaming AI assistant replies, fanned out horizontally using Redis Pub/Sub.
+- **Workflow Automation Engine (`app/modules/workflows`)**: An ultra-scalable, high-throughput rules evaluation system executing custom workflow logic (triggers, multi-operator conditions matching, dynamic template interpolation, and concurrent action execution). Engineered with composite-indexed tables and write-through Redis caches (`opspilot:cache:workflows:*`) to eliminate database query spikes.
 
 ## Getting Started
 
@@ -76,7 +78,12 @@ We maintain strict verification standards. Ensure the test database exists befor
 # Create the test catalog in PostgreSQL container
 docker exec opspilot-postgres psql -U opspilot -d opspilot_db -c "CREATE DATABASE opspilot_test_db;"
 
-# Run the test suite
+# Run the complete test suite (All modules passing)
+poetry run pytest
+
+# Run specific integration / module suites
+poetry run pytest tests/test_workflows.py
+poetry run pytest tests/test_websocket.py
 poetry run pytest tests/test_phase3.py
 ```
 
