@@ -58,19 +58,21 @@ class EventBus:
         """Decorator to register an event handler."""
 
         def decorator(handler: EventHandler) -> EventHandler:
-            self._handlers[event_type].append(handler)
-            logger.debug(
-                "Registered handler %s for event '%s'",
-                handler.__name__,
-                event_type,
-            )
+            if handler not in self._handlers[event_type]:
+                self._handlers[event_type].append(handler)
+                logger.debug(
+                    "Registered handler %s for event '%s'",
+                    handler.__name__,
+                    event_type,
+                )
             return handler
 
         return decorator
 
     def subscribe(self, event_type: str, handler: EventHandler) -> None:
         """Programmatically subscribe a handler to an event type."""
-        self._handlers[event_type].append(handler)
+        if handler not in self._handlers[event_type]:
+            self._handlers[event_type].append(handler)
 
     async def emit(
         self,
@@ -103,10 +105,22 @@ class EventBus:
             event.event_id,
         )
 
-        results = await asyncio.gather(
-            *(handler(event) for handler in handlers),
-            return_exceptions=True,
-        )
+        from app.core.config import get_settings
+        if get_settings().is_testing:
+            # Execute handlers sequentially in testing mode to prevent concurrent database session access
+            results = []
+            for handler in handlers:
+                try:
+                    res = await handler(event)
+                    results.append(res)
+                except Exception as ex:
+                    results.append(ex)
+        else:
+            # Execute handlers concurrently in production/development
+            results = await asyncio.gather(
+                *(handler(event) for handler in handlers),
+                return_exceptions=True,
+            )
 
         for i, result in enumerate(results):
             if isinstance(result, Exception):
@@ -117,6 +131,7 @@ class EventBus:
                     result,
                     exc_info=result,
                 )
+
 
 
 # ── Singleton ────────────────────────────────────────────────
