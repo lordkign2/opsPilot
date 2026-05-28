@@ -9,6 +9,8 @@ import json
 import uuid
 from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import get_settings
 from app.core.events import Event, event_bus
 from app.db.redis import redis_client
