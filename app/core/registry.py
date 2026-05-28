@@ -74,6 +74,15 @@ def register_routers(app: FastAPI) -> None:
 
     api_v1_router.include_router(workflows_router)
 
+    # ── Integrations (Phase 6) ───────────────────────────────
+    from app.integrations.whatsapp.webhook import router as whatsapp_router
+    from app.integrations.payments.paystack import router as paystack_router
+    from app.integrations.payments.flutterwave import router as flutterwave_router
+
+    api_v1_router.include_router(whatsapp_router)
+    api_v1_router.include_router(paystack_router)
+    api_v1_router.include_router(flutterwave_router)
+
     # ── Mount the v1 router onto the app ─────────────────────
     app.include_router(api_v1_router)
 

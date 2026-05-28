@@ -75,6 +75,16 @@ class Settings(BaseSettings):
     PAYSTACK_SECRET_KEY: SecretStr | None = None
     PAYSTACK_PUBLIC_KEY: str | None = None
 
+    # ── Integrations (Phase 6) ───────────────────────────────
+    WHATSAPP_TOKEN: SecretStr | None = None
+    WHATSAPP_VERIFY_TOKEN: SecretStr | None = None
+    WHATSAPP_PHONE_NUMBER_ID: str | None = None
+    FLUTTERWAVE_SECRET_HASH: SecretStr | None = None
+    RESEND_API_KEY: SecretStr | None = None
+    TWILIO_ACCOUNT_SID: str | None = None
+    TWILIO_AUTH_TOKEN: SecretStr | None = None
+    EXPO_ACCESS_TOKEN: SecretStr | None = None
+
     # ── Validators ───────────────────────────────────────────
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod
