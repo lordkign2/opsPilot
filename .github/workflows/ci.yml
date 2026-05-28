@@ -1,0 +1,100 @@
+name: OpsPilot CI
+
+on:
+  pull_request:
+    branches: [ main, development ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: opspilot
+          POSTGRES_PASSWORD: opspilot_secret
+          POSTGRES_DB: opspilot_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U opspilot -d opspilot_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load Cached Virtualenv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install Dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install Root Project
+        run: poetry install --no-interaction
+
+      - name: Run Ruff Format Check
+        run: poetry run ruff format --check .
+
+      - name: Run Ruff Linter
+        run: poetry run ruff check .
+
+      - name: Run Static Type Checking (MyPy)
+        run: poetry run mypy app/
+
+      - name: Create Test Database Catalog
+        run: |
+          docker exec ${{ job.services.postgres.id }} psql -U opspilot -d opspilot_db -c "CREATE DATABASE opspilot_test_db;"
+
+      - name: Apply Database Migrations
+        env:
+          DATABASE_URL: postgresql+asyncpg://opspilot:opspilot_secret@localhost:5432/opspilot_db
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET_KEY: GHA_PIPELINE_TESTING_JWT_SECRET_KEY_64_CHAR_MINIMUM_LENGTH_REQUIRED
+        run: |
+          poetry run alembic upgrade head
+
+      - name: Run Test Suite (Pytest)
+        env:
+          DATABASE_URL: postgresql+asyncpg://opspilot:opspilot_secret@localhost:5432/opspilot_db
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET_KEY: GHA_PIPELINE_TESTING_JWT_SECRET_KEY_64_CHAR_MINIMUM_LENGTH_REQUIRED
+        run: |
+          poetry run pytest --cov=app --cov-report=xml
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

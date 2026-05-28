@@ -5,11 +5,12 @@ OpsPilot — Notifications Module: Event Listeners.
 from __future__ import annotations
 
 import uuid
+
 from app.core.events import Event, event_bus
 from app.core.logging import get_logger
 from app.db.session import async_session_factory
-from app.modules.notifications.service import NotificationService
 from app.modules.notifications.schemas import NotificationCreate
+from app.modules.notifications.service import NotificationService
 
 logger = get_logger("notifications.events")
 
@@ -64,7 +65,7 @@ async def handle_order_status_changed(event: Event) -> None:
 @event_bus.on("payment.successful")
 async def handle_payment_successful(event: Event) -> None:
     """Handle successful payment events by generating an in-app notification."""
-    # Note: payment.successful does not always include business_id explicitly in payload, 
+    # Note: payment.successful does not always include business_id explicitly in payload,
     # but we can look it up from the database or if it is supplied.
     # Wait, let's see if payments.successful includes order_id. Yes, event payload has:
     # {"payment_id": str(payment.id), "order_id": str(payment.order_id), "amount": float(payment.amount)}
@@ -79,10 +80,13 @@ async def handle_payment_successful(event: Event) -> None:
 
     async with async_session_factory() as db:
         from app.modules.orders.repository import OrderRepository
+
         order_repo = OrderRepository(db)
         order = await order_repo.get_by_id(order_id)
         if not order:
-            logger.error("Order %s not found during payment notification generation.", order_id)
+            logger.error(
+                "Order %s not found during payment notification generation.", order_id
+            )
             return
 
         service = NotificationService(db)

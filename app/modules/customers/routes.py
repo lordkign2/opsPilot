@@ -3,14 +3,20 @@ OpsPilot — Customers Module: Routes.
 """
 
 import uuid
+
 from fastapi import APIRouter, Query
 
 from app.modules.auth.dependencies import CurrentBusinessId
 from app.modules.customers.dependencies import CustomerServiceDep
-from app.modules.customers.schemas import CustomerCreate, CustomerResponse, CustomerUpdate
-from app.shared.response import success_response, paginated_response
+from app.modules.customers.schemas import (
+    CustomerCreate,
+    CustomerResponse,
+    CustomerUpdate,
+)
+from app.shared.response import paginated_response, success_response
 
 router = APIRouter(prefix="/customers", tags=["Customers"])
+
 
 @router.post("/", response_model=None, status_code=201)
 async def create_customer(
@@ -22,8 +28,9 @@ async def create_customer(
     customer = await customer_service.create_customer(business_id, payload)
     return success_response(
         data=CustomerResponse.model_validate(customer).model_dump(mode="json"),
-        message="Customer created successfully."
+        message="Customer created successfully.",
     )
+
 
 @router.get("/", response_model=None)
 async def list_customers(
@@ -38,9 +45,12 @@ async def list_customers(
         business_id, offset=offset, limit=per_page
     )
     total = await customer_service.repo.count_by_business(business_id)
-    
-    data = [CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers]
+
+    data = [
+        CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers
+    ]
     return paginated_response(data=data, total=total, page=page, per_page=per_page)
+
 
 @router.get("/search", response_model=None)
 async def search_customers(
@@ -58,9 +68,12 @@ async def search_customers(
         offset=offset,
         limit=per_page,
     )
-    
-    data = [CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers]
+
+    data = [
+        CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers
+    ]
     return paginated_response(data=data, total=total, page=page, per_page=per_page)
+
 
 @router.get("/{customer_id}", response_model=None)
 async def get_customer(
@@ -70,7 +83,10 @@ async def get_customer(
 ):
     """Get a specific customer."""
     customer = await customer_service.get_customer(business_id, customer_id)
-    return success_response(data=CustomerResponse.model_validate(customer).model_dump(mode="json"))
+    return success_response(
+        data=CustomerResponse.model_validate(customer).model_dump(mode="json")
+    )
+
 
 @router.patch("/{customer_id}", response_model=None)
 async def update_customer(
@@ -83,5 +99,5 @@ async def update_customer(
     customer = await customer_service.update_customer(business_id, customer_id, payload)
     return success_response(
         data=CustomerResponse.model_validate(customer).model_dump(mode="json"),
-        message="Customer updated successfully."
+        message="Customer updated successfully.",
     )

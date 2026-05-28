@@ -3,11 +3,13 @@ OpsPilot — Customers Module: Repository.
 """
 
 import uuid
+
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.shared.base_repository import BaseRepository
 from app.modules.customers.models import Customer
+from app.shared.base_repository import BaseRepository
+
 
 class CustomerRepository(BaseRepository[Customer]):
     def __init__(self, db: AsyncSession):
@@ -35,6 +37,7 @@ class CustomerRepository(BaseRepository[Customer]):
 
         # Count total matches using SQLAlchemy 2.0 pattern
         from sqlalchemy import func
+
         count_stmt = select(func.count()).select_from(stmt.subquery())
         total = await self.db.scalar(count_stmt)
 

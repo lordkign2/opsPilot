@@ -32,11 +32,18 @@ logger = get_logger("main")
 
 # ── Lifecycle ────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application startup and shutdown hooks."""
     setup_logging()
     register_event_handlers()
+
+    # Start horizontal broadcaster for WebSockets (Phase 4)
+    from app.websocket.broadcaster import start_broadcaster
+    start_broadcaster()
+
+
 
     logger.info(
         "Starting %s v%s [%s]",
@@ -50,7 +57,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Shutdown
     from app.db.redis import redis_client
     from app.db.session import engine
+    from app.websocket.broadcaster import stop_broadcaster
 
+    await stop_broadcaster()
     await engine.dispose()
     await redis_client.close()
     logger.info("Shutdown complete.")
@@ -78,6 +87,7 @@ app.add_middleware(RateLimitMiddleware, default_limit=60, auth_limit=10)
 
 # ── Global Exception Handlers ───────────────────────────────
 
+
 @app.exception_handler(OpsPilotException)
 async def opspilot_exception_handler(
     request: Request, exc: OpsPilotException
@@ -95,9 +105,7 @@ async def opspilot_exception_handler(
 
 
 @app.exception_handler(Exception)
-async def generic_exception_handler(
-    request: Request, exc: Exception
-) -> JSONResponse:
+async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catch-all for unhandled exceptions."""
     logger.error("Unhandled exception: %s", exc, exc_info=True)
     return JSONResponse(
@@ -115,6 +123,7 @@ register_routers(app)
 
 
 # ── Health Check ─────────────────────────────────────────────
+
 
 @app.get("/health", tags=["Health"])
 async def health_check():

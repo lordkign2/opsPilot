@@ -11,6 +11,7 @@ from app.modules.audit.service import AuditService
 
 logger = get_logger("audit.events")
 
+
 @event_bus.on("user.logged_in")
 @event_bus.on("user.registered")
 async def handle_audit_events(event: Event) -> None:

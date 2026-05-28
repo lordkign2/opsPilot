@@ -7,7 +7,6 @@ Inherits from BaseRepository to avoid boilerplate.
 
 from __future__ import annotations
 
-from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.businesses.models import Business

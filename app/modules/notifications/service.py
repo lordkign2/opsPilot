@@ -5,6 +5,7 @@ OpsPilot — Notifications Module: Service.
 from __future__ import annotations
 
 import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
@@ -36,7 +37,9 @@ class NotificationService:
         self, business_id: uuid.UUID, notification_id: uuid.UUID
     ) -> Notification:
         """Fetch a notification ensuring business-scoped security."""
-        notification = await self.repo.get_one_by(id=notification_id, business_id=business_id)
+        notification = await self.repo.get_one_by(
+            id=notification_id, business_id=business_id
+        )
         if not notification:
             raise NotFoundError("Notification not found.")
         return notification

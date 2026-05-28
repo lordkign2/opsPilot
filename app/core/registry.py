@@ -28,34 +28,47 @@ def register_routers(app: FastAPI) -> None:
 
     # ── Auth ─────────────────────────────────────────────────
     from app.modules.auth.routes import router as auth_router
+
     api_v1_router.include_router(auth_router)
 
     # ── Businesses ───────────────────────────────────────────
     from app.modules.businesses.routes import router as businesses_router
+
     api_v1_router.include_router(businesses_router)
 
     # ── Customers ────────────────────────────────────────────
     from app.modules.customers.routes import router as customers_router
+
     api_v1_router.include_router(customers_router)
 
     # ── Orders ───────────────────────────────────────────────
     from app.modules.orders.routes import router as orders_router
+
     api_v1_router.include_router(orders_router)
 
     # ── Payments ─────────────────────────────────────────────
     from app.modules.payments.routes import router as payments_router
+
     api_v1_router.include_router(payments_router)
 
     # ── Phase 3 Modules ──────────────────────────────────────
     from app.modules.ai.routes import router as ai_router
+
     api_v1_router.include_router(ai_router)
 
     from app.modules.analytics.routes import router as analytics_router
+
     api_v1_router.include_router(analytics_router)
 
     from app.modules.notifications.routes import router as notifications_router
+
     api_v1_router.include_router(notifications_router)
-    
+
+    # ── WebSocket Gateway (Phase 4) ──────────────────────────
+    from app.websocket.routes import router as ws_router
+
+    api_v1_router.include_router(ws_router)
+
     # ── Mount the v1 router onto the app ─────────────────────
     app.include_router(api_v1_router)
 
@@ -67,10 +80,15 @@ def register_event_handlers() -> None:
 
     Adding a module? Import its events module here.
     """
+    import app.modules.audit.events  # noqa: F401
     import app.modules.auth.events  # noqa: F401
     import app.modules.businesses.events  # noqa: F401
-    import app.modules.audit.events  # noqa: F401
     import app.modules.customers.events  # noqa: F401
+    import app.modules.notifications.events  # noqa: F401
     import app.modules.orders.events  # noqa: F401
     import app.modules.payments.events  # noqa: F401
-    import app.modules.notifications.events  # noqa: F401
+
+    # Register real-time event bridge (Phase 4)
+    from app.websocket.events import register_ws_event_bridge
+    register_ws_event_bridge()
+

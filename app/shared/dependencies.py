@@ -8,7 +8,6 @@ Module-specific dependencies live in their own `dependencies.py`.
 from __future__ import annotations
 
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession

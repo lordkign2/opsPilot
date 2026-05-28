@@ -35,6 +35,7 @@ class OpsPilotException(Exception):
 
 # ── 400 Bad Request ──────────────────────────────────────────
 
+
 class BadRequestError(OpsPilotException):
     status_code = 400
     detail = "Bad request."
@@ -48,6 +49,7 @@ class ValidationError(OpsPilotException):
 
 
 # ── 401 Unauthorized ─────────────────────────────────────────
+
 
 class UnauthorizedError(OpsPilotException):
     status_code = 401
@@ -75,6 +77,7 @@ class InvalidTokenError(OpsPilotException):
 
 # ── 403 Forbidden ────────────────────────────────────────────
 
+
 class ForbiddenError(OpsPilotException):
     status_code = 403
     detail = "You do not have permission to perform this action."
@@ -89,6 +92,7 @@ class InsufficientRoleError(OpsPilotException):
 
 # ── 404 Not Found ────────────────────────────────────────────
 
+
 class NotFoundError(OpsPilotException):
     status_code = 404
     detail = "Resource not found."
@@ -96,6 +100,7 @@ class NotFoundError(OpsPilotException):
 
 
 # ── 409 Conflict ─────────────────────────────────────────────
+
 
 class ConflictError(OpsPilotException):
     status_code = 409
@@ -117,6 +122,7 @@ class DuplicateSlugError(OpsPilotException):
 
 # ── 429 Rate Limit ───────────────────────────────────────────
 
+
 class RateLimitError(OpsPilotException):
     status_code = 429
     detail = "Too many requests. Please try again later."
@@ -124,6 +130,7 @@ class RateLimitError(OpsPilotException):
 
 
 # ── 503 Service Unavailable ──────────────────────────────────
+
 
 class ServiceUnavailableError(OpsPilotException):
     status_code = 503

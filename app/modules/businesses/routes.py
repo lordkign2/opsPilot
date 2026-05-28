@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from app.modules.auth.dependencies import CurrentUser, require_role
-from app.modules.auth.models import UserRole
+from app.modules.auth.dependencies import CurrentUser
 from app.modules.businesses.dependencies import (
     BusinessServiceDep,
     CurrentBusiness,
@@ -27,6 +26,7 @@ router = APIRouter(prefix="/businesses", tags=["Businesses"])
 
 # ── GET /current ─────────────────────────────────────────────
 
+
 @router.get(
     "/current",
     response_model=None,
@@ -40,6 +40,7 @@ async def get_current_business(current_business: CurrentBusiness):
 
 
 # ── GET /{business_id} ──────────────────────────────────────
+
 
 @router.get(
     "/{business_id}",
@@ -59,6 +60,7 @@ async def get_business(
 
 
 # ── PATCH /{business_id} ────────────────────────────────────
+
 
 @router.patch(
     "/{business_id}",
@@ -83,6 +85,7 @@ async def update_business(
 
 
 # ── GET /slug/{slug} ────────────────────────────────────────
+
 
 @router.get(
     "/slug/{slug}",

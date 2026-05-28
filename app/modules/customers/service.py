@@ -3,23 +3,29 @@ OpsPilot — Customers Module: Service.
 """
 
 import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.events import event_bus
-from app.core.exceptions import NotFoundError, ConflictError
+from app.core.exceptions import ConflictError, NotFoundError
 from app.modules.customers.models import Customer
 from app.modules.customers.repository import CustomerRepository
 from app.modules.customers.schemas import CustomerCreate, CustomerUpdate
+
 
 class CustomerService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.repo = CustomerRepository(db)
 
-    async def create_customer(self, business_id: uuid.UUID, payload: CustomerCreate) -> Customer:
+    async def create_customer(
+        self, business_id: uuid.UUID, payload: CustomerCreate
+    ) -> Customer:
         """Create a new customer for a business."""
         # Check if phone already exists for this business
-        existing = await self.repo.get_one_by(business_id=business_id, phone=payload.phone)
+        existing = await self.repo.get_one_by(
+            business_id=business_id, phone=payload.phone
+        )
         if existing:
             raise ConflictError("A customer with this phone number already exists.")
 
@@ -44,19 +50,25 @@ class CustomerService:
         )
         return customer
 
-    async def get_customer(self, business_id: uuid.UUID, customer_id: uuid.UUID) -> Customer:
+    async def get_customer(
+        self, business_id: uuid.UUID, customer_id: uuid.UUID
+    ) -> Customer:
         """Fetch a customer ensuring they belong to the correct business."""
         customer = await self.repo.get_one_by(id=customer_id, business_id=business_id)
         if not customer:
             raise NotFoundError("Customer not found.")
         return customer
 
-    async def update_customer(self, business_id: uuid.UUID, customer_id: uuid.UUID, payload: CustomerUpdate) -> Customer:
+    async def update_customer(
+        self, business_id: uuid.UUID, customer_id: uuid.UUID, payload: CustomerUpdate
+    ) -> Customer:
         """Update customer details."""
         customer = await self.get_customer(business_id, customer_id)
-        
+
         if payload.phone and payload.phone != customer.phone:
-            existing = await self.repo.get_one_by(business_id=business_id, phone=payload.phone)
+            existing = await self.repo.get_one_by(
+                business_id=business_id, phone=payload.phone
+            )
             if existing:
                 raise ConflictError("A customer with this phone number already exists.")
 

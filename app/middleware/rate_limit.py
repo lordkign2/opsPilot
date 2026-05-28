@@ -54,8 +54,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Determine rate limit
         is_auth = any(
-            path.startswith(p)
-            for p in ("/api/v1/auth/login", "/api/v1/auth/register")
+            path.startswith(p) for p in ("/api/v1/auth/login", "/api/v1/auth/register")
         )
         limit = self.auth_limit if is_auth else self.default_limit
 
@@ -65,9 +64,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Clean expired entries
         now = time.time()
         cutoff = now - self.window_seconds
-        self._buckets[bucket_key] = [
-            t for t in self._buckets[bucket_key] if t > cutoff
-        ]
+        self._buckets[bucket_key] = [t for t in self._buckets[bucket_key] if t > cutoff]
 
         if len(self._buckets[bucket_key]) >= limit:
             logger.warning("Rate limit hit: %s (%s)", bucket_key, path)

@@ -4,16 +4,21 @@ OpsPilot — Orders Module: Schemas.
 
 import uuid
 from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict, Field
+
 from app.modules.orders.models import OrderStatus
+
 
 class OrderCreate(BaseModel):
     customer_id: uuid.UUID
     total_amount: float = Field(..., gt=0)
     notes: str | None = None
 
+
 class OrderStatusUpdate(BaseModel):
     status: OrderStatus
+
 
 class OrderResponse(BaseModel):
     id: uuid.UUID

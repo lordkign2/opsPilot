@@ -13,11 +13,12 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.modules.auth.models import UserRole
 
-
 # ── Registration ─────────────────────────────────────────────
+
 
 class RegisterRequest(BaseModel):
     """Payload for user registration."""
+
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
     first_name: str = Field(..., min_length=1, max_length=100)
@@ -38,16 +39,20 @@ class RegisterRequest(BaseModel):
 
 # ── Login ────────────────────────────────────────────────────
 
+
 class LoginRequest(BaseModel):
     """Payload for user login."""
+
     email: EmailStr
     password: str
 
 
 # ── Tokens ───────────────────────────────────────────────────
 
+
 class TokenResponse(BaseModel):
     """JWT token pair returned after authentication."""
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
@@ -55,13 +60,16 @@ class TokenResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     """Payload for token refresh."""
+
     refresh_token: str
 
 
 # ── User Responses ───────────────────────────────────────────
 
+
 class UserResponse(BaseModel):
     """Public representation of a user."""
+
     id: uuid.UUID
     email: str
     first_name: str
@@ -79,6 +87,7 @@ class UserResponse(BaseModel):
 
 class UserBriefResponse(BaseModel):
     """Minimal user info for embedding in other responses."""
+
     id: uuid.UUID
     email: str
     first_name: str
@@ -90,8 +99,10 @@ class UserBriefResponse(BaseModel):
 
 # ── Password ─────────────────────────────────────────────────
 
+
 class ChangePasswordRequest(BaseModel):
     """Payload for changing password."""
+
     current_password: str
     new_password: str = Field(..., min_length=8, max_length=128)
 

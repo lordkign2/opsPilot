@@ -6,12 +6,13 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.customers.models import Customer
 from app.modules.orders.models import Order, OrderStatus
 from app.modules.payments.models import Payment, PaymentStatus
-from app.modules.customers.models import Customer
 
 
 class AnalyticsService:
@@ -30,11 +31,15 @@ class AnalyticsService:
         total_revenue = await self.db.scalar(revenue_stmt) or 0.0
 
         # 2. Total Customers Count
-        customer_stmt = select(func.count(Customer.id)).where(Customer.business_id == business_id)
+        customer_stmt = select(func.count(Customer.id)).where(
+            Customer.business_id == business_id
+        )
         total_customers = await self.db.scalar(customer_stmt) or 0
 
         # 3. Total Orders Count & Breakdown
-        orders_stmt = select(func.count(Order.id)).where(Order.business_id == business_id)
+        orders_stmt = select(func.count(Order.id)).where(
+            Order.business_id == business_id
+        )
         total_orders = await self.db.scalar(orders_stmt) or 0
 
         completed_orders_stmt = (
@@ -47,7 +52,9 @@ class AnalyticsService:
         # 4. Averages
         avg_order_value = 0.0
         if total_orders > 0:
-            avg_stmt = select(func.avg(Order.total_amount)).where(Order.business_id == business_id)
+            avg_stmt = select(func.avg(Order.total_amount)).where(
+                Order.business_id == business_id
+            )
             avg_order_value = float(await self.db.scalar(avg_stmt) or 0.0)
 
         conversion_rate = 0.0
@@ -73,7 +80,7 @@ class AnalyticsService:
         stmt = (
             select(
                 func.date(Payment.created_at).label("date"),
-                func.sum(Payment.amount).label("amount")
+                func.sum(Payment.amount).label("amount"),
             )
             .join(Order, Payment.order_id == Order.id)
             .where(Order.business_id == business_id)
@@ -82,7 +89,7 @@ class AnalyticsService:
             .group_by(func.date(Payment.created_at))
             .order_by(func.date(Payment.created_at).asc())
         )
-        
+
         result = await self.db.execute(stmt)
         rows = result.all()
 
@@ -92,10 +99,7 @@ class AnalyticsService:
 
         for i in range(days):
             d = (cutoff_date + timedelta(days=i + 1)).date()
-            trend.append({
-                "date": d.isoformat(),
-                "revenue": date_map.get(d, 0.0)
-            })
+            trend.append({"date": d.isoformat(), "revenue": date_map.get(d, 0.0)})
 
         return trend
 
@@ -120,12 +124,6 @@ class AnalyticsService:
             percentage = 0.0
             if total > 0:
                 percentage = (count / total) * 100
-            distribution[status_val] = {
-                "count": count,
-                "percentage": percentage
-            }
+            distribution[status_val] = {"count": count, "percentage": percentage}
 
-        return {
-            "total_orders": total,
-            "distribution": distribution
-        }
+        return {"total_orders": total, "distribution": distribution}

@@ -7,9 +7,7 @@ Inherits from BaseRepository to avoid boilerplate.
 
 from __future__ import annotations
 
-import uuid
-
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.auth.models import User
@@ -32,9 +30,9 @@ class UserRepository(BaseRepository[User]):
     async def email_exists(self, email: str) -> bool:
         """Check if an email is already registered."""
         result = await self.db.execute(
-            select(func.count()).select_from(User).where(
-                func.lower(User.email) == email.lower()
-            )
+            select(func.count())
+            .select_from(User)
+            .where(func.lower(User.email) == email.lower())
         )
         return (result.scalar() or 0) > 0
 
