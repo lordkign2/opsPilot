@@ -225,7 +225,13 @@ class AuthService:
         if not user.is_active:
             raise UnauthorizedError("Account deactivated.")
 
+        # Set user and business logging context variables for trace decor
+        from app.core.logging import business_id_ctx, user_id_ctx
+        user_id_ctx.set(str(user.id))
+        business_id_ctx.set(str(user.business_id) if user.business_id else None)
+
         return user
+
 
     # ── Change Password ──────────────────────────────────────
 
