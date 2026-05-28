@@ -28,10 +28,10 @@ class StructuredFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         # Injects global context variables
-        record.request_id = request_id_ctx.get() or "-"
-        record.business_id = business_id_ctx.get() or "-"
-        record.user_id = user_id_ctx.get() or "-"
-        record.module_name = record.name
+        setattr(record, "request_id", request_id_ctx.get() or "-")
+        setattr(record, "business_id", business_id_ctx.get() or "-")
+        setattr(record, "user_id", user_id_ctx.get() or "-")
+        setattr(record, "module_name", record.name)
 
         settings = get_settings()
         if settings.is_production:
@@ -42,9 +42,9 @@ class StructuredFormatter(logging.Formatter):
                 "level": record.levelname,
                 "logger": record.name,
                 "message": record.getMessage(),
-                "request_id": record.request_id,
-                "business_id": record.business_id,
-                "user_id": record.user_id,
+                "request_id": getattr(record, "request_id", "-"),
+                "business_id": getattr(record, "business_id", "-"),
+                "user_id": getattr(record, "user_id", "-"),
             }
             if record.exc_info and record.exc_info[1]:
                 log_data["exception"] = self.formatException(record.exc_info)
@@ -64,9 +64,12 @@ class StructuredFormatter(logging.Formatter):
             return orjson.dumps(log_data).decode()
         else:
             # Clean development console alignment including tenancy tags
+            req_id = getattr(record, "request_id", "-")
+            b_id = getattr(record, "business_id", "-")
+            u_id = getattr(record, "user_id", "-")
             return (
                 f"{self.formatTime(record)} | {record.levelname:<8} | "
-                f"{record.request_id} | b:{record.business_id:<36} | u:{record.user_id:<36} | "
+                f"{req_id} | b:{b_id:<36} | u:{u_id:<36} | "
                 f"{record.name} | {record.getMessage()}"
             )
 
