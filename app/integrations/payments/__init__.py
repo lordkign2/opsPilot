@@ -1,0 +1,3 @@
+"""
+OpsPilot — Payments integration subpackage.
+"""
