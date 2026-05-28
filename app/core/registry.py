@@ -69,6 +69,11 @@ def register_routers(app: FastAPI) -> None:
 
     api_v1_router.include_router(ws_router)
 
+    # ── Workflows Gateway (Phase 5) ──────────────────────────
+    from app.modules.workflows.routes import router as workflows_router
+
+    api_v1_router.include_router(workflows_router)
+
     # ── Mount the v1 router onto the app ─────────────────────
     app.include_router(api_v1_router)
 
@@ -91,4 +96,9 @@ def register_event_handlers() -> None:
     # Register real-time event bridge (Phase 4)
     from app.websocket.events import register_ws_event_bridge
     register_ws_event_bridge()
+
+    # Register workflow trigger listeners (Phase 5)
+    from app.modules.workflows.triggers import register_workflow_trigger_listeners
+    register_workflow_trigger_listeners()
+
 
