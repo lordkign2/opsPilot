@@ -1,0 +1,3 @@
+"""
+OpsPilot — WhatsApp integration subpackage.
+"""
