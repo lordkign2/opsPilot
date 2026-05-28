@@ -39,6 +39,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     setup_logging()
     register_event_handlers()
 
+    # Start horizontal broadcaster for WebSockets (Phase 4)
+    from app.websocket.broadcaster import start_broadcaster
+    start_broadcaster()
+
+
+
     logger.info(
         "Starting %s v%s [%s]",
         settings.APP_NAME,
@@ -51,7 +57,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Shutdown
     from app.db.redis import redis_client
     from app.db.session import engine
+    from app.websocket.broadcaster import stop_broadcaster
 
+    await stop_broadcaster()
     await engine.dispose()
     await redis_client.close()
     logger.info("Shutdown complete.")

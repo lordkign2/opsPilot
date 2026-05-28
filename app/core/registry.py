@@ -64,6 +64,11 @@ def register_routers(app: FastAPI) -> None:
 
     api_v1_router.include_router(notifications_router)
 
+    # ── WebSocket Gateway (Phase 4) ──────────────────────────
+    from app.websocket.routes import router as ws_router
+
+    api_v1_router.include_router(ws_router)
+
     # ── Mount the v1 router onto the app ─────────────────────
     app.include_router(api_v1_router)
 
@@ -82,3 +87,8 @@ def register_event_handlers() -> None:
     import app.modules.notifications.events  # noqa: F401
     import app.modules.orders.events  # noqa: F401
     import app.modules.payments.events  # noqa: F401
+
+    # Register real-time event bridge (Phase 4)
+    from app.websocket.events import register_ws_event_bridge
+    register_ws_event_bridge()
+
