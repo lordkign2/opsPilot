@@ -61,7 +61,7 @@ class AdminService:
         memory_percent = 0.0
         cpu_percent = 0.0
         try:
-            import psutil  # type: ignore
+            import psutil
 
             memory_percent = psutil.virtual_memory().percent
             cpu_percent = psutil.cpu_percent(interval=None)
@@ -312,7 +312,7 @@ class AdminService:
         if not all_conns:
             return 0
 
-        async def send(conn):
+        async def send(conn: Any) -> None:
             success = await conn.send_json(ws_message)
             if not success:
                 disconnected.append(conn)

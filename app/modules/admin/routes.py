@@ -7,6 +7,7 @@ Exposes platforms overrides and observabilities to administrators, delegating to
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 import redis.asyncio as aioredis
 from fastapi import APIRouter, Depends, Query
@@ -35,7 +36,7 @@ async def get_system_health(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
     redis: aioredis.Redis = Depends(get_redis),
-):
+) -> Any:
     """Ping PostgreSQL, Redis, WebSocket connection counts, CPU, and memory usage."""
     health_data = await service.get_system_health(redis)
     return success_response(data=health_data, message="System connection telemetry retrieved successfully.")
@@ -53,7 +54,7 @@ async def get_system_logs(
     service: AdminServiceDep,
     limit: int = Query(default=100, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
-):
+) -> Any:
     """Exposes a paginated compliance audit log feed directly inside Swagger."""
     logs, total = await service.get_system_logs(limit, offset)
     return paginated_response(
@@ -77,7 +78,7 @@ async def toggle_maintenance_mode(
     service: AdminServiceDep,
     payload: MaintenanceRequest,
     redis: aioredis.Redis = Depends(get_redis),
-):
+) -> Any:
     """Toggle system-wide maintenance mode in Redis, blocking standard traffic."""
     is_active = await service.toggle_maintenance_mode(redis, payload.is_active)
     return success_response(
@@ -98,7 +99,7 @@ async def list_businesses(
     service: AdminServiceDep,
     limit: int = Query(default=50, ge=1),
     offset: int = Query(default=0, ge=0),
-):
+) -> Any:
     """Returns all active/inactive businesses globally."""
     data, total = await service.list_businesses(limit, offset)
     return paginated_response(
@@ -118,7 +119,7 @@ async def toggle_business_status(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
     business_id: uuid.UUID,
-):
+) -> Any:
     """Deactivate or activate a business tenant, suspending access for all member users."""
     res = await service.toggle_business_status(business_id)
     return success_response(
@@ -134,7 +135,7 @@ async def soft_delete_business(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
     business_id: uuid.UUID,
-):
+) -> Any:
     """Soft-deletes a business workspace by stamping deleted_at timestamp."""
     res = await service.soft_delete_business(business_id)
     return success_response(data=res, message="Business workspace soft-deleted successfully.")
@@ -148,7 +149,7 @@ async def hard_purge_business(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
     business_id: uuid.UUID,
-):
+) -> Any:
     """Permanently purges a business and executes a cascading relational cleanup."""
     await service.hard_purge_business(business_id)
     return success_response(
@@ -169,7 +170,7 @@ async def list_users(
     service: AdminServiceDep,
     limit: int = Query(default=50, ge=1),
     offset: int = Query(default=0, ge=0),
-):
+) -> Any:
     """Returns all users across all business workspaces."""
     data, total = await service.list_users(limit, offset)
     return paginated_response(
@@ -190,7 +191,7 @@ async def update_user_role(
     service: AdminServiceDep,
     user_id: uuid.UUID,
     payload: RoleUpdateRequest,
-):
+) -> Any:
     """Promotes or alters any user's role (including elevating to super_admin)."""
     res = await service.update_user_role(user_id, payload.role)
     return success_response(data=res, message="User role updated successfully.")
@@ -204,7 +205,7 @@ async def toggle_user_status(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
     user_id: uuid.UUID,
-):
+) -> Any:
     """Toggle a user's active status, instantly blocking access on next request if suspended."""
     res = await service.toggle_user_status(user_id)
     return success_response(
@@ -220,7 +221,7 @@ async def soft_delete_user(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
     user_id: uuid.UUID,
-):
+) -> Any:
     """Soft-deletes a user account by stamping deleted_at timestamp."""
     res = await service.soft_delete_user(user_id)
     return success_response(data=res, message="User account soft-deleted successfully.")
@@ -234,7 +235,7 @@ async def hard_purge_user(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
     user_id: uuid.UUID,
-):
+) -> Any:
     """GDPR absolute purge: deletes user permanently from database."""
     await service.hard_purge_user(user_id)
     return success_response(
@@ -254,7 +255,7 @@ async def list_global_workflows(
     service: AdminServiceDep,
     limit: int = Query(default=100, ge=1),
     offset: int = Query(default=0, ge=0),
-):
+) -> Any:
     """Audits automated triggers and rules configured globally."""
     data, total = await service.list_global_workflows(limit, offset)
     return paginated_response(
@@ -276,7 +277,7 @@ async def list_global_workflows(
 async def get_websocket_sessions(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
-):
+) -> Any:
     """Retrieves metadata of all active WebSocket client sessions."""
     sessions = await service.get_websocket_sessions()
     return success_response(data=sessions, message="Active WebSocket connections retrieved successfully.")
@@ -290,7 +291,7 @@ async def broadcast_system_alert(
     admin: CurrentSuperAdmin,
     service: AdminServiceDep,
     payload: BroadcastRequest,
-):
+) -> Any:
     """Sends a system alert event to all currently active WebSocket connections globally."""
     count = await service.broadcast_system_alert(payload.message, payload.event_type)
     return success_response(

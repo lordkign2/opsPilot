@@ -7,7 +7,7 @@ Handles password hashing (bcrypt) and JWT token lifecycle.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, cast
 
 import bcrypt
 from jose import JWTError, jwt
@@ -49,10 +49,13 @@ def create_access_token(
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire, "type": "access"})
 
-    return jwt.encode(
-        to_encode,
-        settings.JWT_SECRET_KEY.get_secret_value(),
-        algorithm=settings.JWT_ALGORITHM,
+    return cast(
+        str,
+        jwt.encode(
+            to_encode,
+            settings.JWT_SECRET_KEY.get_secret_value(),
+            algorithm=settings.JWT_ALGORITHM,
+        ),
     )
 
 
@@ -67,10 +70,13 @@ def create_refresh_token(
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS))
     to_encode.update({"exp": expire, "type": "refresh"})
 
-    return jwt.encode(
-        to_encode,
-        settings.JWT_SECRET_KEY.get_secret_value(),
-        algorithm=settings.JWT_ALGORITHM,
+    return cast(
+        str,
+        jwt.encode(
+            to_encode,
+            settings.JWT_SECRET_KEY.get_secret_value(),
+            algorithm=settings.JWT_ALGORITHM,
+        ),
     )
 
 
@@ -81,10 +87,13 @@ def decode_token(token: str) -> dict[str, Any]:
     Raises `JWTError` on invalid/expired tokens.
     """
     settings = get_settings()
-    return jwt.decode(
-        token,
-        settings.JWT_SECRET_KEY.get_secret_value(),
-        algorithms=[settings.JWT_ALGORITHM],
+    return cast(
+        dict[str, Any],
+        jwt.decode(
+            token,
+            settings.JWT_SECRET_KEY.get_secret_value(),
+            algorithms=[settings.JWT_ALGORITHM],
+        ),
     )
 
 

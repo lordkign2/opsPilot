@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -165,7 +166,7 @@ register_routers(app)
 
 
 @app.get("/health", tags=["Health"])
-async def health_check():
+async def health_check() -> dict[str, Any]:
     """Basic health check endpoint."""
     return {
         "status": "healthy",
@@ -176,7 +177,7 @@ async def health_check():
 
 
 @app.get("/", tags=["Health"])
-async def root():
+async def root() -> dict[str, Any]:
     """Root endpoint."""
     return {
         "message": f"Welcome to {settings.APP_NAME} API",
