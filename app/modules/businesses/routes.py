@@ -7,6 +7,7 @@ Business workspace management endpoints.
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from fastapi import APIRouter
 
@@ -32,7 +33,7 @@ router = APIRouter(prefix="/businesses", tags=["Businesses"])
     response_model=None,
     summary="Get current user's business",
 )
-async def get_current_business(current_business: CurrentBusiness):
+async def get_current_business(current_business: CurrentBusiness) -> Any:
     """Return the business associated with the authenticated user."""
     return success_response(
         data=BusinessResponse.model_validate(current_business).model_dump(mode="json"),
@@ -51,7 +52,7 @@ async def get_business(
     business_id: uuid.UUID,
     service: BusinessServiceDep,
     current_user: CurrentUser,
-):
+) -> Any:
     """Retrieve a specific business by its ID."""
     business = await service.get_business(business_id)
     return success_response(
@@ -72,7 +73,7 @@ async def update_business(
     payload: UpdateBusinessRequest,
     service: BusinessServiceDep,
     current_user: CurrentUser,
-):
+) -> Any:
     """
     Update a business workspace.
     Requires OWNER or MANAGER role.
@@ -95,7 +96,7 @@ async def update_business(
 async def get_business_by_slug(
     slug: str,
     service: BusinessServiceDep,
-):
+) -> Any:
     """Retrieve a business by its URL slug (public endpoint)."""
     business = await service.get_business_by_slug(slug)
     return success_response(

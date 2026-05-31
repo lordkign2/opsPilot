@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -22,6 +23,7 @@ from app.core.logging import get_logger, setup_logging
 from app.core.registry import register_event_handlers, register_routers
 from app.middleware.cors import add_cors_middleware
 from app.middleware.logging import RequestLoggingMiddleware
+from app.middleware.maintenance import MaintenanceModeMiddleware
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.shared.response import error_response
@@ -33,6 +35,43 @@ logger = get_logger("main")
 # ── Lifecycle ────────────────────────────────────────────────
 
 
+async def seed_super_admin() -> None:
+    """Ensure the original master super-admin is seeded in the database."""
+    from sqlalchemy import select
+
+    from app.core.security import hash_password
+    from app.db.session import async_session_factory
+    from app.modules.auth.models import User, UserRole
+
+    email = settings.SUPER_ADMIN_EMAIL
+    password = settings.SUPER_ADMIN_PASSWORD.get_secret_value()
+
+    async with async_session_factory() as session:
+        try:
+            result = await session.execute(select(User).where(User.email == email))
+            admin = result.scalar_one_or_none()
+            if not admin:
+                logger.info("Original super-admin not found, seeding...")
+                hashed = hash_password(password)
+                new_admin = User(
+                    email=email,
+                    password_hash=hashed,
+                    first_name="Original",
+                    last_name="Super Admin",
+                    role=UserRole.SUPER_ADMIN,
+                    business_id=None,
+                    is_active=True,
+                    is_verified=True,
+                )
+                session.add(new_admin)
+                await session.commit()
+                logger.info("Original super-admin seeded successfully.")
+            else:
+                logger.info("Original super-admin already exists.")
+        except Exception as e:
+            logger.error("Failed to seed super-admin: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application startup and shutdown hooks."""
@@ -41,9 +80,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     # Start horizontal broadcaster for WebSockets (Phase 4)
     from app.websocket.broadcaster import start_broadcaster
+
     start_broadcaster()
 
-
+    # Seed the original super-admin
+    await seed_super_admin()
 
     logger.info(
         "Starting %s v%s [%s]",
@@ -82,6 +123,7 @@ app = FastAPI(
 add_cors_middleware(app)
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(MaintenanceModeMiddleware)
 app.add_middleware(RateLimitMiddleware, default_limit=60, auth_limit=10)
 
 
@@ -89,9 +131,7 @@ app.add_middleware(RateLimitMiddleware, default_limit=60, auth_limit=10)
 
 
 @app.exception_handler(OpsPilotException)
-async def opspilot_exception_handler(
-    request: Request, exc: OpsPilotException
-) -> JSONResponse:
+async def opspilot_exception_handler(request: Request, exc: OpsPilotException) -> JSONResponse:
     """Convert custom exceptions into standardised JSON errors."""
     return JSONResponse(
         status_code=exc.status_code,
@@ -126,7 +166,7 @@ register_routers(app)
 
 
 @app.get("/health", tags=["Health"])
-async def health_check():
+async def health_check() -> dict[str, Any]:
     """Basic health check endpoint."""
     return {
         "status": "healthy",
@@ -137,7 +177,7 @@ async def health_check():
 
 
 @app.get("/", tags=["Health"])
-async def root():
+async def root() -> dict[str, Any]:
     """Root endpoint."""
     return {
         "message": f"Welcome to {settings.APP_NAME} API",

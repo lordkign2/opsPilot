@@ -5,7 +5,6 @@ OpsPilot — WebSocket Route Handlers.
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
@@ -52,6 +51,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str | None = None) -> 
 
         # 4. Connection loop — listen for client-side events (e.g. active tab/presence changes)
         import json
+
         while True:
             try:
                 data = await websocket.receive_json()
@@ -62,11 +62,13 @@ async def websocket_endpoint(websocket: WebSocket, token: str | None = None) -> 
                     b_id,
                     parse_err,
                 )
-                await connection.send_json({
-                    "event": "error",
-                    "business_id": b_id,
-                    "payload": {"message": "Invalid frame payload. Expected valid JSON format."},
-                })
+                await connection.send_json(
+                    {
+                        "event": "error",
+                        "business_id": b_id,
+                        "payload": {"message": "Invalid frame payload. Expected valid JSON format."},
+                    }
+                )
                 continue
 
             msg_type = data.get("type")
@@ -91,7 +93,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str | None = None) -> 
     finally:
         # 5. Clean up presence and connections
         ws_manager.disconnect(connection)
-        
+
         # Broadcast leaving status to business workspace
         await ws_manager.broadcast_to_business(
             business_id=b_id,

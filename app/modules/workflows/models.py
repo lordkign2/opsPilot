@@ -8,7 +8,7 @@ import enum
 import uuid
 from typing import Any
 
-from sqlalchemy import Boolean, ForeignKey, Index, String, Text
+from sqlalchemy import Boolean, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,6 +17,7 @@ from app.db.base import Base
 
 class LogDepth(str, enum.Enum):
     """Controls the write logging density of rules executions to avoid DB write exhaustion."""
+
     ALL = "all"
     ERRORS_ONLY = "errors_only"
     NONE = "none"
@@ -33,11 +34,11 @@ class Workflow(Base):
     description: Mapped[str | None] = mapped_column(String(255), nullable=True)
     trigger_type: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., 'order.created'
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    
+
     # Store conditions and actions as binary JSONB for fast JSON operations
     conditions: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list, nullable=False)
     actions: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, default=list, nullable=False)
-    
+
     log_depth: Mapped[str] = mapped_column(String(20), default=LogDepth.ALL.value, nullable=False)
 
     # Scoped to business
@@ -53,9 +54,7 @@ class Workflow(Base):
     executions = relationship("WorkflowExecutionLog", back_populates="workflow", cascade="all, delete-orphan")
 
     # Composite index for sub-millisecond database lookup fallbacks
-    __table_args__ = (
-        Index("ix_workflow_lookup", "business_id", "trigger_type", "is_active"),
-    )
+    __table_args__ = (Index("ix_workflow_lookup", "business_id", "trigger_type", "is_active"),)
 
 
 class WorkflowExecutionLog(Base):

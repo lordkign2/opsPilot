@@ -4,6 +4,8 @@ OpsPilot — AI Module: Routes.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter
 
 from app.modules.ai.dependencies import AIServiceDep
@@ -27,7 +29,7 @@ async def chat_with_assistant(
     payload: AIChatRequest,
     business_id: CurrentBusinessId,
     ai_service: AIServiceDep,
-):
+) -> Any:
     """Interact session-less with the AI business operations assistant."""
     reply = await ai_service.chat_with_assistant(business_id, payload.message)
     return success_response(
@@ -41,7 +43,7 @@ async def generate_business_summary(
     payload: AISummaryRequest,
     business_id: CurrentBusinessId,
     ai_service: AIServiceDep,
-):
+) -> Any:
     """Generate professional workspace performance summaries."""
     summary = await ai_service.generate_business_summary(business_id, payload.timeframe)
     return success_response(
@@ -54,7 +56,7 @@ async def generate_business_summary(
 async def generate_recommendations(
     business_id: CurrentBusinessId,
     ai_service: AIServiceDep,
-):
+) -> Any:
     """Get operational optimization recommendations."""
     recs = await ai_service.generate_recommendations(business_id)
     return success_response(
@@ -68,14 +70,10 @@ async def generate_customer_insights(
     payload: AICustomerInsightsRequest,
     business_id: CurrentBusinessId,
     ai_service: AIServiceDep,
-):
+) -> Any:
     """Analyze behavior segmentation and churn likelihood for a specific customer."""
-    insights = await ai_service.generate_customer_insights(
-        business_id, payload.customer_id
-    )
+    insights = await ai_service.generate_customer_insights(business_id, payload.customer_id)
     return success_response(
-        data=AICustomerInsightsResponse(
-            customer_id=payload.customer_id, insights=insights
-        ).model_dump(),
+        data=AICustomerInsightsResponse(customer_id=payload.customer_id, insights=insights).model_dump(),
         message="Customer behavioral insights compiled successfully.",
     )

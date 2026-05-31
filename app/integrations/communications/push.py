@@ -15,7 +15,7 @@ logger = get_logger("integrations.communications.push")
 async def send_push_notification(expo_token: str, title: str, message: str) -> bool:
     """
     Sends a transactional push notification to web/mobile clients using the Expo Push Service.
-    
+
     If credentials are not configured, falls back to logging the dispatch securely.
     """
     # 1. Validation check

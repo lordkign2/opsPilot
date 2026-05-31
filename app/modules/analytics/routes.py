@@ -4,6 +4,8 @@ OpsPilot — Analytics Module: Routes.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Query
 
 from app.modules.analytics.dependencies import AnalyticsServiceDep
@@ -17,12 +19,10 @@ router = APIRouter(prefix="/analytics", tags=["Analytics"])
 async def get_overview(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,
-):
+) -> Any:
     """Retrieve operational dashboard overview analytics."""
     data = await analytics_service.get_overview(business_id)
-    return success_response(
-        data=data, message="Dashboard overview fetched successfully."
-    )
+    return success_response(data=data, message="Dashboard overview fetched successfully.")
 
 
 @router.get("/revenue", response_model=None)
@@ -30,7 +30,7 @@ async def get_revenue_history(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,
     days: int = Query(30, ge=1, le=365),
-):
+) -> Any:
     """Retrieve successful revenue trend statistics."""
     trend = await analytics_service.get_revenue_history(business_id, days=days)
     return success_response(
@@ -43,9 +43,7 @@ async def get_revenue_history(
 async def get_order_distribution(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,
-):
+) -> Any:
     """Retrieve order status distribution statistics."""
     data = await analytics_service.get_order_distribution(business_id)
-    return success_response(
-        data=data, message="Order status distribution fetched successfully."
-    )
+    return success_response(data=data, message="Order status distribution fetched successfully.")

@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import NotFoundError
 from app.db.session import get_db
 from app.modules.auth.dependencies import CurrentBusinessId
-from app.modules.workflows.models import Workflow, WorkflowExecutionLog
+from app.modules.workflows.models import Workflow
 from app.modules.workflows.repository import WorkflowExecutionLogRepository, WorkflowRepository
 from app.modules.workflows.schemas import WorkflowCreate, WorkflowResponse, WorkflowUpdate
 from app.modules.workflows.triggers import invalidate_workflow_cache
@@ -34,7 +34,7 @@ async def create_workflow(
     Automatically invalidates the Redis active cache for the specified trigger event.
     """
     repo = WorkflowRepository(db)
-    
+
     # Instantiate new rule structure
     workflow = Workflow(
         name=payload.name,
@@ -69,7 +69,7 @@ async def list_workflows(
     """
     repo = WorkflowRepository(db)
     workflows = await repo.get_by_business(business_id, limit=100)
-    
+
     serialized = [WorkflowResponse.from_orm(w).model_dump() for w in workflows]
     return success_response(data=serialized)
 
@@ -92,18 +92,20 @@ async def list_execution_logs(
         order_by="created_at",
         descending=True,
     )
-    
+
     serialized = []
     for log in logs:
-        serialized.append({
-            "id": str(log.id),
-            "workflow_id": str(log.workflow_id),
-            "workflow_name": log.workflow.name if log.workflow else "Deleted Workflow",
-            "business_id": str(log.business_id),
-            "status": log.status,
-            "error_message": log.error_message,
-            "created_at": log.created_at.isoformat(),
-        })
+        serialized.append(
+            {
+                "id": str(log.id),
+                "workflow_id": str(log.workflow_id),
+                "workflow_name": log.workflow.name if log.workflow else "Deleted Workflow",
+                "business_id": str(log.business_id),
+                "status": log.status,
+                "error_message": log.error_message,
+                "created_at": log.created_at.isoformat(),
+            }
+        )
 
     return success_response(data=serialized)
 

@@ -6,9 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import re
-from datetime import datetime, timezone
 from typing import Any
-import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,7 +26,7 @@ def get_nested_value(data: dict[str, Any], path: str) -> Any:
     Extracts a value from a nested dictionary path, supporting dot notation (e.g., 'customer.name').
     """
     parts = path.strip().split(".")
-    val = data
+    val: Any = data
     for part in parts:
         if isinstance(val, dict):
             val = val.get(part)
@@ -62,20 +60,20 @@ def evaluate_condition(payload: dict[str, Any], condition: dict[str, Any]) -> bo
             return bool(val) is False
         elif op == "contains":
             return str(target).lower() in str(val).lower()
-        
+
         # Numeric comparators (try safe float cast)
-        elif op in ("gt", "ge", "lt", "le"):
-            numeric_val = float(val)  # type: ignore
-            numeric_target = float(target)  # type: ignore
-            
-            if op == "gt":
-                return numeric_val > numeric_target
-            elif op == "ge":
-                return numeric_val >= numeric_target
-            elif op == "lt":
-                return numeric_val < numeric_target
-            elif op == "le":
-                return numeric_val <= numeric_target
+        elif op in ("gt", "ge", "lt", "le") and val is not None and target is not None:
+            numeric_val = float(val)
+            numeric_target = float(target)
+
+            ops = {
+                "gt": lambda x, y: x > y,
+                "ge": lambda x, y: x >= y,
+                "lt": lambda x, y: x < y,
+                "le": lambda x, y: x <= y,
+            }
+            if op in ops:
+                return bool(ops[op](numeric_val, numeric_target))
 
     except (ValueError, TypeError) as e:
         logger.debug("Failed condition cast evaluation for operator '%s' on val '%s': %s", op, val, e)
@@ -89,7 +87,8 @@ def resolve_string(template: str, payload: dict[str, Any]) -> str:
     Resolves a string with dynamic template keys, e.g. replacing 'Hello {{customer.name}}'
     with 'Hello Alice'.
     """
-    def replacer(match: re.Match) -> str:
+
+    def replacer(match: re.Match[str]) -> str:
         path = match.group(1).strip()
         val = get_nested_value(payload, path)
         return str(val) if val is not None else ""
@@ -110,9 +109,7 @@ def resolve_templates(params: Any, payload: dict[str, Any]) -> Any:
     return params
 
 
-async def evaluate_and_run_workflow(
-    db: AsyncSession, workflow: Workflow, payload: dict[str, Any]
-) -> None:
+async def evaluate_and_run_workflow(db: AsyncSession, workflow: Workflow, payload: dict[str, Any]) -> None:
     """
     Evaluates rule conditions against trigger payloads and executes actions concurrently.
 
@@ -153,10 +150,10 @@ async def evaluate_and_run_workflow(
     for action in workflow.actions:
         a_type = action.get("type", "")
         raw_params = action.get("params", {})
-        
+
         # Render template keys
         resolved_params = resolve_templates(raw_params, payload)
-        
+
         actions_tasks.append(
             run_action(
                 db=db,
@@ -168,14 +165,14 @@ async def evaluate_and_run_workflow(
 
     try:
         results = await asyncio.gather(*actions_tasks, return_exceptions=True)
-        
+
         # Parse for failures inside gathered actions
         failures = [r for r in results if isinstance(r, Exception)]
-        
+
         if failures:
             err_msg = "; ".join(str(f) for f in failures)
             logger.error("Workflow '%s' [id=%s] completed with errors: %s", workflow.name, w_id, err_msg)
-            
+
             if depth in (LogDepth.ALL.value, LogDepth.ERRORS_ONLY.value):
                 log_entry = WorkflowExecutionLog(
                     workflow_id=w_id,
@@ -187,7 +184,7 @@ async def evaluate_and_run_workflow(
                 await db.commit()
         else:
             logger.info("Workflow '%s' [id=%s] executed successfully.", workflow.name, w_id)
-            
+
             if depth == LogDepth.ALL.value:
                 log_entry = WorkflowExecutionLog(
                     workflow_id=w_id,

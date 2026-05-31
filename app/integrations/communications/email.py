@@ -15,7 +15,7 @@ logger = get_logger("integrations.communications.email")
 async def send_transactional_email(to_email: str, subject: str, html_content: str) -> bool:
     """
     Sends a transactional HTML email using the Resend Cloud API.
-    
+
     If Resend credentials are not configured, falls back to logging the dispatch securely.
     """
     settings = get_settings()

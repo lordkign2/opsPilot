@@ -14,9 +14,7 @@ E164_REGEX = re.compile(r"^\+[1-9]\d{1,14}$")
 
 class CustomerCreate(BaseModel):
     name: str = Field(..., max_length=200)
-    phone: str = Field(
-        ..., description="Phone number in E.164 format (e.g., +2348012345678)"
-    )
+    phone: str = Field(..., description="Phone number in E.164 format (e.g., +2348012345678)")
     email: str | None = None
     notes: str | None = None
 
@@ -24,9 +22,7 @@ class CustomerCreate(BaseModel):
     @classmethod
     def validate_phone(cls, v: str) -> str:
         if not E164_REGEX.match(v):
-            raise ValueError(
-                "Phone number must be in E.164 format including country code."
-            )
+            raise ValueError("Phone number must be in E.164 format including country code.")
         return v
 
 
@@ -40,9 +36,7 @@ class CustomerUpdate(BaseModel):
     @classmethod
     def validate_phone(cls, v: str | None) -> str | None:
         if v and not E164_REGEX.match(v):
-            raise ValueError(
-                "Phone number must be in E.164 format including country code."
-            )
+            raise ValueError("Phone number must be in E.164 format including country code.")
         return v
 
 

@@ -84,9 +84,7 @@ async def handle_payment_successful(event: Event) -> None:
         order_repo = OrderRepository(db)
         order = await order_repo.get_by_id(order_id)
         if not order:
-            logger.error(
-                "Order %s not found during payment notification generation.", order_id
-            )
+            logger.error("Order %s not found during payment notification generation.", order_id)
             return
 
         service = NotificationService(db)

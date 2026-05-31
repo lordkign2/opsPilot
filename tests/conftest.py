@@ -25,9 +25,7 @@ from app.main import app
 settings = get_settings()
 
 # Use a separate test database (in-memory SQLite for speed, or test Postgres)
-TEST_DATABASE_URL = settings.DATABASE_URL.get_secret_value().replace(
-    "opspilot_db", "opspilot_test_db"
-)
+TEST_DATABASE_URL = settings.DATABASE_URL.get_secret_value().replace("opspilot_db", "opspilot_test_db")
 
 
 @pytest.fixture(scope="session")

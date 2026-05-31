@@ -22,17 +22,13 @@ class UserRepository(BaseRepository[User]):
 
     async def get_by_email(self, email: str) -> User | None:
         """Fetch a user by email address (case-insensitive)."""
-        result = await self.db.execute(
-            select(User).where(func.lower(User.email) == email.lower())
-        )
+        result = await self.db.execute(select(User).where(func.lower(User.email) == email.lower()))
         return result.scalar_one_or_none()
 
     async def email_exists(self, email: str) -> bool:
         """Check if an email is already registered."""
         result = await self.db.execute(
-            select(func.count())
-            .select_from(User)
-            .where(func.lower(User.email) == email.lower())
+            select(func.count()).select_from(User).where(func.lower(User.email) == email.lower())
         )
         return (result.scalar() or 0) > 0
 

@@ -7,7 +7,6 @@ Bridges the local internal event_bus events directly into the Redis Pub/Sub gate
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from app.core.events import Event, event_bus
 from app.websocket.broadcaster import publish_event

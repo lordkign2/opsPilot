@@ -16,6 +16,7 @@ from app.modules.workflows.models import LogDepth
 
 class ConditionOperator(str, enum.Enum):
     """Supported logical comparison operators for condition evaluation."""
+
     EQ = "eq"
     NE = "ne"
     GT = "gt"
@@ -29,6 +30,7 @@ class ConditionOperator(str, enum.Enum):
 
 class ActionType(str, enum.Enum):
     """Supported side-effect task executors."""
+
     SEND_NOTIFICATION = "send_notification"
     GENERATE_AI_MESSAGE = "generate_ai_message"
     SEND_WHATSAPP = "send_whatsapp"
@@ -38,6 +40,7 @@ class ActionType(str, enum.Enum):
 
 class WorkflowCondition(BaseModel):
     """Validates individual rule comparison blocks."""
+
     field: str = Field(..., description="JSON path or variable key from trigger payload (e.g. 'amount')")
     operator: ConditionOperator = Field(..., description="The logic comparator")
     value: Any = Field(default=None, description="Value to match against (ignored for boolean comparators)")
@@ -45,12 +48,16 @@ class WorkflowCondition(BaseModel):
 
 class WorkflowAction(BaseModel):
     """Validates individual action blocks."""
+
     type: ActionType = Field(..., description="Type of task to trigger")
-    params: dict[str, Any] = Field(default_factory=dict, description="Task configurations support dynamic templates, e.g. {{order_id}}")
+    params: dict[str, Any] = Field(
+        default_factory=dict, description="Task configurations support dynamic templates, e.g. {{order_id}}"
+    )
 
 
 class WorkflowCreate(BaseModel):
     """Validates creation payload."""
+
     name: str = Field(..., min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=255)
     trigger_type: str = Field(..., min_length=1, max_length=50)  # e.g., 'order.created'
@@ -62,6 +69,7 @@ class WorkflowCreate(BaseModel):
 
 class WorkflowUpdate(BaseModel):
     """Validates partial updates."""
+
     name: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=255)
     trigger_type: str | None = Field(default=None, min_length=1, max_length=50)
@@ -73,6 +81,7 @@ class WorkflowUpdate(BaseModel):
 
 class WorkflowResponse(BaseModel):
     """Serializer response payload."""
+
     id: UUID
     business_id: UUID
     name: str
@@ -91,6 +100,7 @@ class WorkflowResponse(BaseModel):
 
 class WorkflowExecutionLogResponse(BaseModel):
     """Serializer response for automation runs."""
+
     id: UUID
     workflow_id: UUID
     business_id: UUID

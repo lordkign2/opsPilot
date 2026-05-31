@@ -3,6 +3,7 @@ OpsPilot — Payments Module: Service.
 """
 
 import uuid
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,13 +22,9 @@ class PaymentService:
         self.repo = PaymentRepository(db)
         self.order_repo = OrderRepository(db)
 
-    async def initialize_payment(
-        self, business_id: uuid.UUID, payload: PaymentInitialize
-    ) -> Payment:
+    async def initialize_payment(self, business_id: uuid.UUID, payload: PaymentInitialize) -> Payment:
         """Stub implementation to initialize a payment."""
-        order = await self.order_repo.get_one_by(
-            id=payload.order_id, business_id=business_id
-        )
+        order = await self.order_repo.get_one_by(id=payload.order_id, business_id=business_id)
         if not order:
             raise NotFoundError("Order not found or does not belong to your business.")
 
@@ -36,9 +33,7 @@ class PaymentService:
         import random
         import string
 
-        tx_ref = "tx-" + "".join(
-            random.choices(string.ascii_letters + string.digits, k=12)
-        )
+        tx_ref = "tx-" + "".join(random.choices(string.ascii_letters + string.digits, k=12))
 
         payment = Payment(
             order_id=payload.order_id,
@@ -93,7 +88,7 @@ class PaymentService:
 
         return payment
 
-    async def handle_webhook(self, event: str, data: dict) -> None:
+    async def handle_webhook(self, event: str, data: dict[str, Any]) -> None:
         """Handle incoming webhooks from payment provider."""
         # Stub logic
         tx_ref = data.get("reference")

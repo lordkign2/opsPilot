@@ -21,9 +21,7 @@ logger = get_logger("middleware.logging")
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Logs incoming requests and outgoing responses."""
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         start_time = time.perf_counter()
 
         # Skip health check noise

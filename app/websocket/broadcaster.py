@@ -7,19 +7,18 @@ Leverages Redis Pub/Sub for cross-instance messaging to support horizontal scali
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
-import logging
 from typing import Any
 
 from app.core.logging import get_logger
-from app.db.redis import redis_client
 from app.websocket.manager import ws_manager
 
 logger = get_logger("websocket.broadcaster")
 
 
 REDIS_CHANNEL = "opspilot:broadcast"
-_subscriber_task: asyncio.Task | None = None
+_subscriber_task: asyncio.Task[Any] | None = None
 
 
 async def publish_event(
@@ -33,8 +32,9 @@ async def publish_event(
     This fans out to all active application nodes.
     """
     import redis.asyncio as aioredis
+
     from app.core.config import get_settings
-    
+
     settings = get_settings()
     client = aioredis.from_url(
         settings.REDIS_URL.get_secret_value(),
@@ -63,6 +63,7 @@ async def redis_subscriber_loop() -> None:
     Features resilient automatic reconnection with exponential backoff to survive Redis service downtime.
     """
     import redis.asyncio as aioredis
+
     from app.core.config import get_settings
 
     settings = get_settings()
@@ -84,7 +85,7 @@ async def redis_subscriber_loop() -> None:
             pubsub = client.pubsub()
             await pubsub.subscribe(REDIS_CHANNEL)
             logger.info("Successfully subscribed to Redis channel: %s", REDIS_CHANNEL)
-            
+
             # Reset backoff delay upon successful connection
             retry_delay = 1.0
 
@@ -116,40 +117,38 @@ async def redis_subscriber_loop() -> None:
         except asyncio.CancelledError:
             logger.info("Redis subscriber loop task cancelled.")
             if pubsub:
-                try:
+                with contextlib.suppress(Exception):
                     await pubsub.unsubscribe(REDIS_CHANNEL)
                     await pubsub.close()
-                except Exception:
-                    pass
             if client:
-                try:
+                with contextlib.suppress(Exception):
                     await client.close()
-                except Exception:
-                    pass
             break
 
         except Exception as e:
-            logger.error(
-                "Redis subscriber loop disconnected or failed to connect: %s. Reconnecting in %.2fs...",
-                e,
-                retry_delay,
-                exc_info=True,
-            )
+            # Silence standard idle timeouts to keep logs clean
+            is_timeout = "timeout" in str(e).lower()
+            if is_timeout:
+                logger.debug("Redis subscriber loop read timeout (idle connection).")
+            else:
+                logger.error(
+                    "Redis subscriber loop disconnected or failed to connect: %s. Reconnecting in %.2fs...",
+                    e,
+                    retry_delay,
+                    exc_info=True,
+                )
             if pubsub:
-                try:
+                with contextlib.suppress(Exception):
                     await pubsub.close()
-                except Exception:
-                    pass
             if client:
-                try:
+                with contextlib.suppress(Exception):
                     await client.close()
-                except Exception:
-                    pass
 
-            await asyncio.sleep(retry_delay)
-            retry_delay = min(retry_delay * backoff_factor, max_retry_delay)
-
-
+            # Fast reconnect for timeouts, backoff for actual errors
+            sleep_time = 0.1 if is_timeout else retry_delay
+            await asyncio.sleep(sleep_time)
+            if not is_timeout:
+                retry_delay = min(retry_delay * backoff_factor, max_retry_delay)
 
 
 def start_broadcaster() -> None:
@@ -165,8 +164,6 @@ async def stop_broadcaster() -> None:
     global _subscriber_task
     if _subscriber_task and not _subscriber_task.done():
         _subscriber_task.cancel()
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await _subscriber_task
-        except asyncio.CancelledError:
-            pass
         logger.info("Distributed broadcaster task stopped.")

@@ -41,3 +41,6 @@ migrations/versions/*.pyc
 .DS_Store
 Thumbs.db
 .kiro
+
+# ─── Logs ────────────────────────────────────────────────────
+logs/

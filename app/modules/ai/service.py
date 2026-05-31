@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
+from typing import Any
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,9 +33,7 @@ class AIService:
         self.payment_repo = PaymentRepository(db)
         self.settings = get_settings()
 
-    async def _call_openai(
-        self, prompt: str, system_instruction: str
-    ) -> tuple[str, int]:
+    async def _call_openai(self, prompt: str, system_instruction: str) -> tuple[str, int]:
         """Utility method to invoke the OpenAI chat completion API using httpx."""
         api_key = self.settings.OPENAI_API_KEY
         if not api_key:
@@ -58,9 +57,7 @@ class AIService:
                     },
                 )
                 if response.status_code != 200:
-                    logger.error(
-                        "OpenAI API error: %s - %s", response.status_code, response.text
-                    )
+                    logger.error("OpenAI API error: %s - %s", response.status_code, response.text)
                     raise RuntimeError(f"OpenAI API call failed: {response.text}")
 
                 res_json = response.json()
@@ -68,9 +65,7 @@ class AIService:
                 tokens = res_json.get("usage", {}).get("total_tokens", 0)
                 return content, tokens
             except Exception as e:
-                logger.error(
-                    "Exception occurred during OpenAI communication: %s", str(e)
-                )
+                logger.error("Exception occurred during OpenAI communication: %s", str(e))
                 raise RuntimeError(f"OpenAI connection error: {str(e)}") from e
 
     async def chat_with_assistant(self, business_id: uuid.UUID, message: str) -> str:
@@ -106,9 +101,7 @@ class AIService:
                 await self.db.commit()
                 return reply
             except Exception as e:
-                logger.warning(
-                    "Failing over to mock AI response due to OpenAI failure: %s", str(e)
-                )
+                logger.warning("Failing over to mock AI response due to OpenAI failure: %s", str(e))
 
         # Mock Fallback (extremely detailed and context-aware)
         reply = (
@@ -130,9 +123,7 @@ class AIService:
         await self.db.commit()
         return reply
 
-    async def generate_business_summary(
-        self, business_id: uuid.UUID, timeframe: str
-    ) -> str:
+    async def generate_business_summary(self, business_id: uuid.UUID, timeframe: str) -> str:
         """Create a professional business activity summary."""
         overview = await self.analytics_service.get_overview(business_id)
         dist = await self.analytics_service.get_order_distribution(business_id)
@@ -194,7 +185,7 @@ class AIService:
         await self.db.commit()
         return reply
 
-    async def generate_recommendations(self, business_id: uuid.UUID) -> list[dict]:
+    async def generate_recommendations(self, business_id: uuid.UUID) -> list[dict[str, Any]]:
         """Detect operational anomalies and produce high-impact suggestions."""
         # Query orders and customers to formulate context
         overview = await self.analytics_service.get_overview(business_id)
@@ -271,13 +262,9 @@ class AIService:
         await self.db.commit()
         return recs
 
-    async def generate_customer_insights(
-        self, business_id: uuid.UUID, customer_id: uuid.UUID
-    ) -> str:
+    async def generate_customer_insights(self, business_id: uuid.UUID, customer_id: uuid.UUID) -> str:
         """Create highly contextual behavior insights for a specific customer."""
-        customer = await self.customer_repo.get_one_by(
-            id=customer_id, business_id=business_id
-        )
+        customer = await self.customer_repo.get_one_by(id=customer_id, business_id=business_id)
         if not customer:
             raise ValueError("Customer not found or access is unauthorized.")
 
@@ -286,11 +273,7 @@ class AIService:
 
         from app.modules.orders.models import Order
 
-        stmt = (
-            select(Order)
-            .where(Order.customer_id == customer_id)
-            .where(Order.business_id == business_id)
-        )
+        stmt = select(Order).where(Order.customer_id == customer_id).where(Order.business_id == business_id)
         result = await self.db.execute(stmt)
         orders = list(result.scalars().all())
 

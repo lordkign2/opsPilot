@@ -3,6 +3,7 @@ OpsPilot — Customers Module: Routes.
 """
 
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Query
 
@@ -23,7 +24,7 @@ async def create_customer(
     payload: CustomerCreate,
     business_id: CurrentBusinessId,
     customer_service: CustomerServiceDep,
-):
+) -> Any:
     """Create a new customer."""
     customer = await customer_service.create_customer(business_id, payload)
     return success_response(
@@ -38,17 +39,13 @@ async def list_customers(
     customer_service: CustomerServiceDep,
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-):
+) -> Any:
     """List all customers for the business."""
     offset = (page - 1) * per_page
-    customers = await customer_service.repo.get_by_business(
-        business_id, offset=offset, limit=per_page
-    )
+    customers = await customer_service.repo.get_by_business(business_id, offset=offset, limit=per_page)
     total = await customer_service.repo.count_by_business(business_id)
 
-    data = [
-        CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers
-    ]
+    data = [CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers]
     return paginated_response(data=data, total=total, page=page, per_page=per_page)
 
 
@@ -59,7 +56,7 @@ async def search_customers(
     customer_service: CustomerServiceDep,
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-):
+) -> Any:
     """Search customers by name, phone, or email."""
     offset = (page - 1) * per_page
     customers, total = await customer_service.repo.search_customers(
@@ -69,9 +66,7 @@ async def search_customers(
         limit=per_page,
     )
 
-    data = [
-        CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers
-    ]
+    data = [CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers]
     return paginated_response(data=data, total=total, page=page, per_page=per_page)
 
 
@@ -80,12 +75,10 @@ async def get_customer(
     customer_id: uuid.UUID,
     business_id: CurrentBusinessId,
     customer_service: CustomerServiceDep,
-):
+) -> Any:
     """Get a specific customer."""
     customer = await customer_service.get_customer(business_id, customer_id)
-    return success_response(
-        data=CustomerResponse.model_validate(customer).model_dump(mode="json")
-    )
+    return success_response(data=CustomerResponse.model_validate(customer).model_dump(mode="json"))
 
 
 @router.patch("/{customer_id}", response_model=None)
@@ -94,7 +87,7 @@ async def update_customer(
     payload: CustomerUpdate,
     business_id: CurrentBusinessId,
     customer_service: CustomerServiceDep,
-):
+) -> Any:
     """Update a specific customer."""
     customer = await customer_service.update_customer(business_id, customer_id, payload)
     return success_response(

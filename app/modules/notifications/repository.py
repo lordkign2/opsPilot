@@ -5,6 +5,7 @@ OpsPilot — Notifications Module: Repository.
 from __future__ import annotations
 
 import uuid
+from typing import Any, cast
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,22 +18,16 @@ class NotificationRepository(BaseRepository[Notification]):
     def __init__(self, db: AsyncSession):
         super().__init__(Notification, db)
 
-    async def mark_all_read(
-        self, business_id: uuid.UUID, user_id: uuid.UUID | None = None
-    ) -> int:
+    async def mark_all_read(self, business_id: uuid.UUID, user_id: uuid.UUID | None = None) -> int:
         """Mark all notifications as read for a business (and user optionally)."""
-        stmt = (
-            update(Notification)
-            .where(Notification.business_id == business_id)
-            .where(Notification.read == False)
-        )
+        stmt = update(Notification).where(Notification.business_id == business_id).where(Notification.read == False)
         if user_id:
             stmt = stmt.where(Notification.user_id == user_id)
 
         stmt = stmt.values(read=True)
         result = await self.db.execute(stmt)
         await self.db.flush()
-        return result.rowcount
+        return int(cast(Any, result).rowcount)
 
     async def get_notifications_scoped(
         self,
@@ -46,9 +41,7 @@ class NotificationRepository(BaseRepository[Notification]):
 
         stmt = select(Notification).where(Notification.business_id == business_id)
         if user_id:
-            stmt = stmt.where(
-                or_(Notification.user_id == user_id, Notification.user_id.is_(None))
-            )
+            stmt = stmt.where(or_(Notification.user_id == user_id, Notification.user_id.is_(None)))
         else:
             stmt = stmt.where(Notification.user_id.is_(None))
 

@@ -85,6 +85,10 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: SecretStr | None = None
     EXPO_ACCESS_TOKEN: SecretStr | None = None
 
+    # ── Super-Admin Seeding Credentials ─────────────────────
+    SUPER_ADMIN_EMAIL: str = "lordkign1@gmail.com"
+    SUPER_ADMIN_PASSWORD: SecretStr = SecretStr("0I4GH6:%tBDC")
+
     # ── Validators ───────────────────────────────────────────
     @field_validator("ALLOWED_ORIGINS", mode="before")
     @classmethod

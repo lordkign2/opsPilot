@@ -18,14 +18,10 @@ class CustomerService:
         self.db = db
         self.repo = CustomerRepository(db)
 
-    async def create_customer(
-        self, business_id: uuid.UUID, payload: CustomerCreate
-    ) -> Customer:
+    async def create_customer(self, business_id: uuid.UUID, payload: CustomerCreate) -> Customer:
         """Create a new customer for a business."""
         # Check if phone already exists for this business
-        existing = await self.repo.get_one_by(
-            business_id=business_id, phone=payload.phone
-        )
+        existing = await self.repo.get_one_by(business_id=business_id, phone=payload.phone)
         if existing:
             raise ConflictError("A customer with this phone number already exists.")
 
@@ -50,9 +46,7 @@ class CustomerService:
         )
         return customer
 
-    async def get_customer(
-        self, business_id: uuid.UUID, customer_id: uuid.UUID
-    ) -> Customer:
+    async def get_customer(self, business_id: uuid.UUID, customer_id: uuid.UUID) -> Customer:
         """Fetch a customer ensuring they belong to the correct business."""
         customer = await self.repo.get_one_by(id=customer_id, business_id=business_id)
         if not customer:
@@ -66,9 +60,7 @@ class CustomerService:
         customer = await self.get_customer(business_id, customer_id)
 
         if payload.phone and payload.phone != customer.phone:
-            existing = await self.repo.get_one_by(
-                business_id=business_id, phone=payload.phone
-            )
+            existing = await self.repo.get_one_by(business_id=business_id, phone=payload.phone)
             if existing:
                 raise ConflictError("A customer with this phone number already exists.")
 

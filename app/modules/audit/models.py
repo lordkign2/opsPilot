@@ -20,9 +20,7 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     action: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
-    actor_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     target_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     module: Mapped[str] = mapped_column(String(50), nullable=False)
 

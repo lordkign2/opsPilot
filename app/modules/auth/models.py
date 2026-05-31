@@ -6,10 +6,11 @@ Defines the User table with role-based access control.
 
 from __future__ import annotations
 
+import datetime
 import enum
 import uuid
 
-from sqlalchemy import Boolean, Enum, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +20,7 @@ from app.db.base import Base
 class UserRole(str, enum.Enum):
     """Roles within a business workspace."""
 
+    SUPER_ADMIN = "super_admin"
     OWNER = "owner"
     MANAGER = "manager"
     CASHIER = "cashier"
@@ -36,9 +38,7 @@ class User(Base):
     __tablename__ = "users"
 
     # ── Profile ──────────────────────────────────────────────
-    email: Mapped[str] = mapped_column(
-        String(255), unique=True, index=True, nullable=False
-    )
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(Text, nullable=False)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -52,6 +52,7 @@ class User(Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    deleted_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # ── Multi-Tenancy ────────────────────────────────────────
     business_id: Mapped[uuid.UUID | None] = mapped_column(

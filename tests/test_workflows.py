@@ -4,9 +4,10 @@ OpsPilot — Workflow Automation Module: Automated Test Suite.
 
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 import uuid
+from contextlib import asynccontextmanager
 from unittest.mock import patch
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
@@ -17,7 +18,7 @@ from app.modules.auth.models import User, UserRole
 from app.modules.auth.service import AuthService
 from app.modules.businesses.models import Business
 from app.modules.notifications.models import Notification
-from app.modules.workflows.models import Workflow, WorkflowExecutionLog
+from app.modules.workflows.models import WorkflowExecutionLog
 
 
 @pytest.fixture
@@ -48,7 +49,7 @@ async def workflow_test_data(db_session: AsyncSession) -> dict:
     await db_session.commit()
 
     # 3. Generate JWT Token using AuthService
-    auth_service = AuthService(db_session, redis=None)  # type: ignore[arg-type]
+    auth_service = AuthService(db_session, redis=None)
     token_data = auth_service._generate_tokens(owner)
 
     return {
@@ -79,27 +80,19 @@ async def test_workflow_crud_and_rule_execution(
         "description": "Notify owner on large payments",
         "trigger_type": "payment.success",
         "is_active": True,
-        "conditions": [
-            {
-                "field": "amount",
-                "operator": "gt",
-                "value": 50000
-            }
-        ],
+        "conditions": [{"field": "amount", "operator": "gt", "value": 50000}],
         "actions": [
             {
                 "type": "send_notification",
-                "params": {
-                    "title": "VIP Transaction!",
-                    "message": "High-value order {{order_id}} paid: ₦{{amount}}"
-                }
+                "params": {"title": "VIP Transaction!", "message": "High-value order {{order_id}} paid: ₦{{amount}}"},
             }
         ],
-        "log_depth": "all"
+        "log_depth": "all",
     }
 
     # Ensure triggers are registered on the event bus
     from app.modules.workflows.triggers import register_workflow_trigger_listeners
+
     register_workflow_trigger_listeners()
 
     response = await client.post("/api/v1/workflows/", json=create_payload, headers=headers)
@@ -115,7 +108,6 @@ async def test_workflow_crud_and_rule_execution(
         yield db_session
 
     with patch("app.modules.workflows.triggers.async_session_factory", mock_session_maker):
-        
         # ── Test Run Case A: Low Amount Payment (Should be skipped by filters) ──
         order_id_low = str(uuid.uuid4())
         await event_bus.emit(
@@ -125,22 +117,19 @@ async def test_workflow_crud_and_rule_execution(
                 "order_id": order_id_low,
                 "amount": 25000.0,  # Below 50,000 threshold
             },
-            source_module="payments"
+            source_module="payments",
         )
 
         # Assert skipped log exists in database, but no notifications were triggered
         stmt_logs = select(WorkflowExecutionLog).where(
-            WorkflowExecutionLog.business_id == uuid.UUID(business_id),
-            WorkflowExecutionLog.status == "skipped"
+            WorkflowExecutionLog.business_id == uuid.UUID(business_id), WorkflowExecutionLog.status == "skipped"
         )
         logs_res = await db_session.execute(stmt_logs)
         skipped_logs = logs_res.scalars().all()
         assert len(skipped_logs) == 1
         assert "skipped" in skipped_logs[0].status
 
-        stmt_notifs = select(Notification).where(
-            Notification.business_id == uuid.UUID(business_id)
-        )
+        stmt_notifs = select(Notification).where(Notification.business_id == uuid.UUID(business_id))
         notifs_res = await db_session.execute(stmt_notifs)
         assert len(notifs_res.scalars().all()) == 0
 
@@ -153,21 +142,18 @@ async def test_workflow_crud_and_rule_execution(
                 "order_id": order_id_high,
                 "amount": 75000.0,  # Exceeds 50,000 threshold
             },
-            source_module="payments"
+            source_module="payments",
         )
 
         # Assert successful log is documented and dynamic template variables resolved into a new alert
         stmt_success = select(WorkflowExecutionLog).where(
-            WorkflowExecutionLog.business_id == uuid.UUID(business_id),
-            WorkflowExecutionLog.status == "success"
+            WorkflowExecutionLog.business_id == uuid.UUID(business_id), WorkflowExecutionLog.status == "success"
         )
         success_res = await db_session.execute(stmt_success)
         success_logs = success_res.scalars().all()
         assert len(success_logs) == 1
 
-        stmt_alerts = select(Notification).where(
-            Notification.business_id == uuid.UUID(business_id)
-        )
+        stmt_alerts = select(Notification).where(Notification.business_id == uuid.UUID(business_id))
         alerts_res = await db_session.execute(stmt_alerts)
         alerts = alerts_res.scalars().all()
         assert len(alerts) == 1

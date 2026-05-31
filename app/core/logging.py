@@ -7,8 +7,10 @@ JSON-formatted logging with correlation IDs for request tracing.
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from contextvars import ContextVar
+from logging.handlers import RotatingFileHandler
 
 from app.core.config import get_settings
 
@@ -28,10 +30,10 @@ class StructuredFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         # Injects global context variables
-        setattr(record, "request_id", request_id_ctx.get() or "-")
-        setattr(record, "business_id", business_id_ctx.get() or "-")
-        setattr(record, "user_id", user_id_ctx.get() or "-")
-        setattr(record, "module_name", record.name)
+        record.request_id = request_id_ctx.get() or "-"
+        record.business_id = business_id_ctx.get() or "-"
+        record.user_id = user_id_ctx.get() or "-"
+        record.module_name = record.name
 
         settings = get_settings()
         if settings.is_production:
@@ -51,11 +53,31 @@ class StructuredFormatter(logging.Formatter):
 
             # Auto-extract and serialize any dynamic context passed via logger.info("...", extra={...})
             standard_attrs = {
-                "args", "asctime", "created", "exc_info", "filename", "funcName",
-                "levelname", "levelno", "lineno", "module", "msecs", "message",
-                "msg", "name", "pathname", "process", "processName",
-                "relativeCreated", "stack_info", "thread", "threadName",
-                "request_id", "business_id", "user_id", "module_name"
+                "args",
+                "asctime",
+                "created",
+                "exc_info",
+                "filename",
+                "funcName",
+                "levelname",
+                "levelno",
+                "lineno",
+                "module",
+                "msecs",
+                "message",
+                "msg",
+                "name",
+                "pathname",
+                "process",
+                "processName",
+                "relativeCreated",
+                "stack_info",
+                "thread",
+                "threadName",
+                "request_id",
+                "business_id",
+                "user_id",
+                "module_name",
             }
             for key, val in record.__dict__.items():
                 if key not in standard_attrs and not key.startswith("_"):
@@ -87,14 +109,27 @@ def setup_logging() -> None:
     root_logger.handlers.clear()
     root_logger.addHandler(handler)
 
+    # File Logging: Rotated log file to separate physical logging from Swagger
+    try:
+        os.makedirs("logs", exist_ok=True)
+        file_handler = RotatingFileHandler(
+            "logs/opspilot.log",
+            maxBytes=10 * 1024 * 1024,  # 10MB
+            backupCount=5,
+            encoding="utf-8",
+        )
+        file_handler.setFormatter(StructuredFormatter())
+        file_handler.setLevel(level)
+        root_logger.addHandler(file_handler)
+    except Exception as e:
+        # Fallback if logs directory cannot be written to
+        sys.stderr.write(f"Failed to initialize file logger: {e}\n")
+
     # Quieten noisy libraries
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
-    logging.getLogger("sqlalchemy.engine").setLevel(
-        logging.INFO if settings.DATABASE_ECHO else logging.WARNING
-    )
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO if settings.DATABASE_ECHO else logging.WARNING)
 
 
 def get_logger(name: str) -> logging.Logger:
     """Get a named logger. Use module __name__ as the name."""
     return logging.getLogger(f"opspilot.{name}")
-

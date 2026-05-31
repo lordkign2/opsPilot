@@ -29,9 +29,7 @@ def upgrade() -> None:
         sa.Column("payload", sa.JSON(), nullable=True),
         sa.Column("ip_address", sa.String(length=45), nullable=True),
         sa.Column("user_agent", sa.String(length=255), nullable=True),
-        sa.Column(
-            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -46,9 +44,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_audit_logs_action"), "audit_logs", ["action"], unique=False
-    )
+    op.create_index(op.f("ix_audit_logs_action"), "audit_logs", ["action"], unique=False)
     op.create_index(op.f("ix_audit_logs_id"), "audit_logs", ["id"], unique=False)
     op.create_table(
         "businesses",
@@ -73,9 +69,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("owner_id", sa.UUID(), nullable=True),
-        sa.Column(
-            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -114,9 +108,7 @@ def upgrade() -> None:
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("is_verified", sa.Boolean(), nullable=False),
         sa.Column("business_id", sa.UUID(), nullable=True),
-        sa.Column(
-            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -140,9 +132,7 @@ def upgrade() -> None:
         ["id"],
         ondelete="SET NULL",
     )
-    op.create_index(
-        op.f("ix_users_business_id"), "users", ["business_id"], unique=False
-    )
+    op.create_index(op.f("ix_users_business_id"), "users", ["business_id"], unique=False)
     op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
     op.create_index(op.f("ix_users_id"), "users", ["id"], unique=False)
     op.create_table(
@@ -152,9 +142,7 @@ def upgrade() -> None:
         sa.Column("response", sa.Text(), nullable=False),
         sa.Column("tokens_used", sa.Integer(), nullable=True),
         sa.Column("business_id", sa.UUID(), nullable=False),
-        sa.Column(
-            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -170,12 +158,8 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["business_id"], ["businesses.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_ai_logs_business_id"), "ai_logs", ["business_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_ai_logs_event_type"), "ai_logs", ["event_type"], unique=False
-    )
+    op.create_index(op.f("ix_ai_logs_business_id"), "ai_logs", ["business_id"], unique=False)
+    op.create_index(op.f("ix_ai_logs_event_type"), "ai_logs", ["event_type"], unique=False)
     op.create_index(op.f("ix_ai_logs_id"), "ai_logs", ["id"], unique=False)
     op.create_table(
         "customers",
@@ -184,9 +168,7 @@ def upgrade() -> None:
         sa.Column("email", sa.String(length=255), nullable=True),
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("business_id", sa.UUID(), nullable=False),
-        sa.Column(
-            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -202,9 +184,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["business_id"], ["businesses.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_customers_business_id"), "customers", ["business_id"], unique=False
-    )
+    op.create_index(op.f("ix_customers_business_id"), "customers", ["business_id"], unique=False)
     op.create_index(op.f("ix_customers_id"), "customers", ["id"], unique=False)
     op.create_index(op.f("ix_customers_phone"), "customers", ["phone"], unique=False)
     op.create_table(
@@ -214,9 +194,7 @@ def upgrade() -> None:
         sa.Column("read", sa.Boolean(), nullable=False),
         sa.Column("business_id", sa.UUID(), nullable=False),
         sa.Column("user_id", sa.UUID(), nullable=True),
-        sa.Column(
-            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -240,9 +218,7 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(op.f("ix_notifications_id"), "notifications", ["id"], unique=False)
-    op.create_index(
-        op.f("ix_notifications_user_id"), "notifications", ["user_id"], unique=False
-    )
+    op.create_index(op.f("ix_notifications_user_id"), "notifications", ["user_id"], unique=False)
     op.create_table(
         "orders",
         sa.Column(
@@ -261,9 +237,7 @@ def upgrade() -> None:
         sa.Column("notes", sa.Text(), nullable=True),
         sa.Column("customer_id", sa.UUID(), nullable=False),
         sa.Column("business_id", sa.UUID(), nullable=False),
-        sa.Column(
-            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -280,12 +254,8 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["customer_id"], ["customers.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_orders_business_id"), "orders", ["business_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_orders_customer_id"), "orders", ["customer_id"], unique=False
-    )
+    op.create_index(op.f("ix_orders_business_id"), "orders", ["business_id"], unique=False)
+    op.create_index(op.f("ix_orders_customer_id"), "orders", ["customer_id"], unique=False)
     op.create_index(op.f("ix_orders_id"), "orders", ["id"], unique=False)
     op.create_index(op.f("ix_orders_status"), "orders", ["status"], unique=False)
     op.create_table(
@@ -315,9 +285,7 @@ def upgrade() -> None:
         ),
         sa.Column("amount", sa.Numeric(precision=10, scale=2), nullable=False),
         sa.Column("payment_url", sa.String(length=500), nullable=True),
-        sa.Column(
-            "id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.UUID(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -334,9 +302,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_payments_id"), "payments", ["id"], unique=False)
-    op.create_index(
-        op.f("ix_payments_order_id"), "payments", ["order_id"], unique=False
-    )
+    op.create_index(op.f("ix_payments_order_id"), "payments", ["order_id"], unique=False)
     op.create_index(op.f("ix_payments_status"), "payments", ["status"], unique=False)
     op.create_index(op.f("ix_payments_tx_ref"), "payments", ["tx_ref"], unique=True)
     # ### end Alembic commands ###

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict
+from typing import Any
 
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -30,7 +31,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def __init__(
         self,
-        app,
+        app: Any,
         *,
         default_limit: int = 60,
         auth_limit: int = 10,
@@ -42,9 +43,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.window_seconds = window_seconds
         self._buckets: dict[str, list[float]] = defaultdict(list)
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         # Skip health checks
         if request.url.path in ("/health", "/healthz", "/"):
             return await call_next(request)
@@ -53,9 +52,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         path = request.url.path
 
         # Determine rate limit
-        is_auth = any(
-            path.startswith(p) for p in ("/api/v1/auth/login", "/api/v1/auth/register")
-        )
+        is_auth = any(path.startswith(p) for p in ("/api/v1/auth/login", "/api/v1/auth/register"))
         limit = self.auth_limit if is_auth else self.default_limit
 
         # Bucket key

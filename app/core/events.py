@@ -106,20 +106,23 @@ class EventBus:
         )
 
         from app.core.config import get_settings
+
+        results: list[Any] = []
         if get_settings().is_testing:
             # Execute handlers sequentially in testing mode to prevent concurrent database session access
-            results = []
             for handler in handlers:
                 try:
-                    res = await handler(event)
-                    results.append(res)
+                    await handler(event)
+                    results.append(None)
                 except Exception as ex:
                     results.append(ex)
         else:
             # Execute handlers concurrently in production/development
-            results = await asyncio.gather(
-                *(handler(event) for handler in handlers),
-                return_exceptions=True,
+            results = list(
+                await asyncio.gather(
+                    *(handler(event) for handler in handlers),
+                    return_exceptions=True,
+                )
             )
 
         for i, result in enumerate(results):
@@ -131,7 +134,6 @@ class EventBus:
                     result,
                     exc_info=result,
                 )
-
 
 
 # ── Singleton ────────────────────────────────────────────────

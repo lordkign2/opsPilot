@@ -5,6 +5,7 @@ OpsPilot — Notifications Module: Routes.
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Query
 
@@ -23,7 +24,7 @@ async def list_notifications(
     notification_service: NotificationServiceDep,
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-):
+) -> Any:
     """List notifications for the current business workspace."""
     offset = (page - 1) * per_page
     notifications, total = await notification_service.get_notifications(
@@ -33,10 +34,7 @@ async def list_notifications(
         limit=per_page,
     )
 
-    data = [
-        NotificationResponse.model_validate(n).model_dump(mode="json")
-        for n in notifications
-    ]
+    data = [NotificationResponse.model_validate(n).model_dump(mode="json") for n in notifications]
     return paginated_response(data=data, total=total, page=page, per_page=per_page)
 
 
@@ -45,7 +43,7 @@ async def mark_notification_read(
     notification_id: uuid.UUID,
     business_id: CurrentBusinessId,
     notification_service: NotificationServiceDep,
-):
+) -> Any:
     """Mark a specific notification as read."""
     notification = await notification_service.mark_read(business_id, notification_id)
     return success_response(
@@ -59,9 +57,7 @@ async def mark_all_read(
     business_id: CurrentBusinessId,
     user: CurrentUser,
     notification_service: NotificationServiceDep,
-):
+) -> Any:
     """Mark all notifications for current user as read."""
     count = await notification_service.mark_all_read(business_id, user_id=user.id)
-    return success_response(
-        data={"marked_count": count}, message="All notifications marked as read."
-    )
+    return success_response(data={"marked_count": count}, message="All notifications marked as read.")

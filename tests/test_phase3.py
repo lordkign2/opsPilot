@@ -112,9 +112,7 @@ async def setup_test_data(db_session: AsyncSession) -> dict:
 
 
 @pytest.mark.asyncio
-async def test_notifications_lifecycle(
-    client: AsyncClient, setup_test_data: dict, db_session: AsyncSession
-):
+async def test_notifications_lifecycle(client: AsyncClient, setup_test_data: dict, db_session: AsyncSession):
     """Test Notifications list, read status modification and read all alerts endpoints."""
     token = setup_test_data["token"]
     business = setup_test_data["business"]
@@ -147,9 +145,7 @@ async def test_notifications_lifecycle(
     assert res_data["meta"]["total"] >= 2
 
     # 2. Mark specific notification read
-    patch_response = await client.patch(
-        f"/api/v1/notifications/{n1.id}/read", headers=headers
-    )
+    patch_response = await client.patch(f"/api/v1/notifications/{n1.id}/read", headers=headers)
     assert patch_response.status_code == 200
     assert patch_response.json()["data"]["read"] is True
 
@@ -191,9 +187,7 @@ async def test_analytics_endpoints(client: AsyncClient, setup_test_data: dict):
 
 
 @pytest.mark.asyncio
-async def test_ai_mock_fallback_endpoints(
-    client: AsyncClient, setup_test_data: dict, db_session: AsyncSession
-):
+async def test_ai_mock_fallback_endpoints(client: AsyncClient, setup_test_data: dict, db_session: AsyncSession):
     """Test AI assistant endpoints using the rich mock fallback system (no API key configured)."""
     token = setup_test_data["token"]
     customer = setup_test_data["customer"]
@@ -207,9 +201,7 @@ async def test_ai_mock_fallback_endpoints(
 
     # 2. Summary Endpoint
     summary_payload = {"timeframe": "weekly"}
-    response = await client.post(
-        "/api/v1/ai/summary", json=summary_payload, headers=headers
-    )
+    response = await client.post("/api/v1/ai/summary", json=summary_payload, headers=headers)
     assert response.status_code == 200
     assert "summary" in response.json()["data"]
 
@@ -221,9 +213,7 @@ async def test_ai_mock_fallback_endpoints(
 
     # 4. Customer Insights Endpoint
     insights_payload = {"customer_id": str(customer.id)}
-    response = await client.post(
-        "/api/v1/ai/customer-insights", json=insights_payload, headers=headers
-    )
+    response = await client.post("/api/v1/ai/customer-insights", json=insights_payload, headers=headers)
     assert response.status_code == 200
     assert response.json()["data"]["customer_id"] == str(customer.id)
     assert "insights" in response.json()["data"]

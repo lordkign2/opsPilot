@@ -45,14 +45,10 @@ class BaseRepository(Generic[ModelType]):
 
     async def get_by_id(self, record_id: uuid.UUID) -> ModelType | None:
         """Fetch a single record by primary key."""
-        result = await self.db.execute(
-            select(self.model).where(self.model.id == record_id)
-        )
+        result = await self.db.execute(select(self.model).where(self.model.id == record_id))
         return result.scalar_one_or_none()
 
-    async def get_by_id_or_raise(
-        self, record_id: uuid.UUID, *, detail: str = "Resource not found."
-    ) -> ModelType:
+    async def get_by_id_or_raise(self, record_id: uuid.UUID, *, detail: str = "Resource not found.") -> ModelType:
         """Fetch by ID or raise NotFoundError."""
         from app.core.exceptions import NotFoundError
 
@@ -159,7 +155,7 @@ class BaseRepository(Generic[ModelType]):
         Falls back to hard delete if no is_active column.
         """
         if hasattr(record, "is_active"):
-            record.is_active = False  # type: ignore
+            record.is_active = False
             await self.db.flush()
             await self.db.refresh(record)
             return record
