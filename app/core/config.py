@@ -92,6 +92,10 @@ class Settings(BaseSettings):
     PROMETHEUS_ENABLED: bool = True
     METRICS_SECRET: SecretStr | None = None
 
+    # ── Security (Phase 8) ────────────────────────────────────
+    # 32-byte hex-encoded AES-256 key. If unset, derived from JWT_SECRET_KEY.
+    ENCRYPTION_KEY: SecretStr | None = None
+
     # ── Super-Admin Seeding Credentials ─────────────────────
     SUPER_ADMIN_EMAIL: str = "lordkign1@gmail.com"
     SUPER_ADMIN_PASSWORD: SecretStr = SecretStr("0I4GH6:%tBDC")

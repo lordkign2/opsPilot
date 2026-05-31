@@ -6,16 +6,19 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
+from app.core.permissions import Permission
 from app.modules.analytics.dependencies import AnalyticsServiceDep
-from app.modules.auth.dependencies import CurrentBusinessId
+from app.modules.auth.dependencies import CurrentBusinessId, require_permission
 from app.shared.response import success_response
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
+_analytics_read = [Depends(require_permission(Permission.ANALYTICS_READ))]
 
-@router.get("/overview", response_model=None)
+
+@router.get("/overview", response_model=None, dependencies=_analytics_read)
 async def get_overview(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,
@@ -25,7 +28,7 @@ async def get_overview(
     return success_response(data=data, message="Dashboard overview fetched successfully.")
 
 
-@router.get("/revenue", response_model=None)
+@router.get("/revenue", response_model=None, dependencies=_analytics_read)
 async def get_revenue_history(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,
@@ -39,7 +42,7 @@ async def get_revenue_history(
     )
 
 
-@router.get("/orders", response_model=None)
+@router.get("/orders", response_model=None, dependencies=_analytics_read)
 async def get_order_distribution(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,
