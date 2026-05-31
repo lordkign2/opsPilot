@@ -33,10 +33,7 @@ async def list_notifications(
         limit=per_page,
     )
 
-    data = [
-        NotificationResponse.model_validate(n).model_dump(mode="json")
-        for n in notifications
-    ]
+    data = [NotificationResponse.model_validate(n).model_dump(mode="json") for n in notifications]
     return paginated_response(data=data, total=total, page=page, per_page=per_page)
 
 
@@ -62,6 +59,4 @@ async def mark_all_read(
 ):
     """Mark all notifications for current user as read."""
     count = await notification_service.mark_all_read(business_id, user_id=user.id)
-    return success_response(
-        data={"marked_count": count}, message="All notifications marked as read."
-    )
+    return success_response(data={"marked_count": count}, message="All notifications marked as read.")

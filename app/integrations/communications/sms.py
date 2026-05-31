@@ -15,7 +15,7 @@ logger = get_logger("integrations.communications.sms")
 async def send_sms(to_phone: str, text: str) -> bool:
     """
     Sends an outbound SMS using Twilio as the global carrier or Termii as the local carrier.
-    
+
     If integration credentials are not configured, falls back to mock sandbox logging.
     """
     settings = get_settings()

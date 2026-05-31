@@ -70,12 +70,8 @@ async def generate_customer_insights(
     ai_service: AIServiceDep,
 ):
     """Analyze behavior segmentation and churn likelihood for a specific customer."""
-    insights = await ai_service.generate_customer_insights(
-        business_id, payload.customer_id
-    )
+    insights = await ai_service.generate_customer_insights(business_id, payload.customer_id)
     return success_response(
-        data=AICustomerInsightsResponse(
-            customer_id=payload.customer_id, insights=insights
-        ).model_dump(),
+        data=AICustomerInsightsResponse(customer_id=payload.customer_id, insights=insights).model_dump(),
         message="Customer behavioral insights compiled successfully.",
     )

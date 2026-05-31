@@ -8,11 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import json
-import logging
 from typing import Any
 
 from app.core.logging import get_logger
-from app.db.redis import redis_client
 from app.websocket.manager import ws_manager
 
 logger = get_logger("websocket.broadcaster")
@@ -33,8 +31,9 @@ async def publish_event(
     This fans out to all active application nodes.
     """
     import redis.asyncio as aioredis
+
     from app.core.config import get_settings
-    
+
     settings = get_settings()
     client = aioredis.from_url(
         settings.REDIS_URL.get_secret_value(),
@@ -63,6 +62,7 @@ async def redis_subscriber_loop() -> None:
     Features resilient automatic reconnection with exponential backoff to survive Redis service downtime.
     """
     import redis.asyncio as aioredis
+
     from app.core.config import get_settings
 
     settings = get_settings()
@@ -84,7 +84,7 @@ async def redis_subscriber_loop() -> None:
             pubsub = client.pubsub()
             await pubsub.subscribe(REDIS_CHANNEL)
             logger.info("Successfully subscribed to Redis channel: %s", REDIS_CHANNEL)
-            
+
             # Reset backoff delay upon successful connection
             retry_delay = 1.0
 
@@ -156,8 +156,6 @@ async def redis_subscriber_loop() -> None:
             await asyncio.sleep(sleep_time)
             if not is_timeout:
                 retry_delay = min(retry_delay * backoff_factor, max_retry_delay)
-
-
 
 
 def start_broadcaster() -> None:

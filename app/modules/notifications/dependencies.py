@@ -17,6 +17,4 @@ def get_notification_service(db: AsyncSession = Depends(get_db)) -> Notification
     return NotificationService(db)
 
 
-NotificationServiceDep = Annotated[
-    NotificationService, Depends(get_notification_service)
-]
+NotificationServiceDep = Annotated[NotificationService, Depends(get_notification_service)]

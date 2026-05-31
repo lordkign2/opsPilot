@@ -31,15 +31,11 @@ class AnalyticsService:
         total_revenue = await self.db.scalar(revenue_stmt) or 0.0
 
         # 2. Total Customers Count
-        customer_stmt = select(func.count(Customer.id)).where(
-            Customer.business_id == business_id
-        )
+        customer_stmt = select(func.count(Customer.id)).where(Customer.business_id == business_id)
         total_customers = await self.db.scalar(customer_stmt) or 0
 
         # 3. Total Orders Count & Breakdown
-        orders_stmt = select(func.count(Order.id)).where(
-            Order.business_id == business_id
-        )
+        orders_stmt = select(func.count(Order.id)).where(Order.business_id == business_id)
         total_orders = await self.db.scalar(orders_stmt) or 0
 
         completed_orders_stmt = (
@@ -52,9 +48,7 @@ class AnalyticsService:
         # 4. Averages
         avg_order_value = 0.0
         if total_orders > 0:
-            avg_stmt = select(func.avg(Order.total_amount)).where(
-                Order.business_id == business_id
-            )
+            avg_stmt = select(func.avg(Order.total_amount)).where(Order.business_id == business_id)
             avg_order_value = float(await self.db.scalar(avg_stmt) or 0.0)
 
         conversion_rate = 0.0
@@ -70,9 +64,7 @@ class AnalyticsService:
             "order_conversion_rate": conversion_rate,
         }
 
-    async def get_revenue_history(
-        self, business_id: uuid.UUID, days: int = 30
-    ) -> list[dict]:
+    async def get_revenue_history(self, business_id: uuid.UUID, days: int = 30) -> list[dict]:
         """Fetch daily revenue trends for the specified past number of days."""
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
@@ -105,11 +97,7 @@ class AnalyticsService:
 
     async def get_order_distribution(self, business_id: uuid.UUID) -> dict:
         """Get the absolute counts and percentages for each order status."""
-        stmt = (
-            select(Order.status, func.count(Order.id))
-            .where(Order.business_id == business_id)
-            .group_by(Order.status)
-        )
+        stmt = select(Order.status, func.count(Order.id)).where(Order.business_id == business_id).group_by(Order.status)
         result = await self.db.execute(stmt)
         rows = result.all()
 

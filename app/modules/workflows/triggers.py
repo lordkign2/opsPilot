@@ -13,9 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.events import Event, event_bus
-from app.db.redis import redis_client
-from app.db.session import async_session_factory
 from app.core.logging import get_logger
+from app.db.session import async_session_factory
 from app.modules.workflows.engine import evaluate_and_run_workflow
 from app.modules.workflows.models import Workflow
 from app.modules.workflows.repository import WorkflowRepository
@@ -39,6 +38,7 @@ async def invalidate_workflow_cache(business_id: uuid.UUID | str, trigger_type: 
     key = get_cache_key(business_id, trigger_type)
     try:
         import redis.asyncio as aioredis
+
         settings = get_settings()
         client = aioredis.from_url(
             settings.REDIS_URL.get_secret_value(),
@@ -64,6 +64,7 @@ async def get_active_workflows_cached(
     cached_data = None
 
     import redis.asyncio as aioredis
+
     settings = get_settings()
     client = aioredis.from_url(
         settings.REDIS_URL.get_secret_value(),
@@ -76,7 +77,7 @@ async def get_active_workflows_cached(
         redis_available = True
     except Exception as e:
         logger.warning("Redis temporary lookup failure on key '%s': %s. Falling back to DB.", key, e)
-    
+
     # 1. Cache hit
     if cached_data:
         try:
@@ -94,17 +95,19 @@ async def get_active_workflows_cached(
     # Transform objects into dict arrays for serialization
     workflows_serialized = []
     for w in workflows:
-        workflows_serialized.append({
-            "id": str(w.id),
-            "business_id": str(w.business_id),
-            "name": w.name,
-            "description": w.description,
-            "trigger_type": w.trigger_type,
-            "is_active": w.is_active,
-            "conditions": w.conditions,
-            "actions": w.actions,
-            "log_depth": w.log_depth,
-        })
+        workflows_serialized.append(
+            {
+                "id": str(w.id),
+                "business_id": str(w.business_id),
+                "name": w.name,
+                "description": w.description,
+                "trigger_type": w.trigger_type,
+                "is_active": w.is_active,
+                "conditions": w.conditions,
+                "actions": w.actions,
+                "log_depth": w.log_depth,
+            }
+        )
 
     # Save to Redis for next hits (if Redis is operational)
     if redis_available:
@@ -144,6 +147,7 @@ async def handle_system_workflow_trigger(event: Event) -> None:
 
                 # 2. Process each rule concurrently
                 from app.core.config import get_settings
+
                 is_testing = get_settings().is_testing
 
                 for rule_dict in rules:
@@ -169,17 +173,15 @@ async def handle_system_workflow_trigger(event: Event) -> None:
 
     # Dispatch either synchronously (for test reliability) or asynchronously (for production scalability)
     from app.core.config import get_settings
+
     if get_settings().is_testing:
         await process_trigger()
     else:
         asyncio.create_task(process_trigger())
 
 
-
-
 # Standard automation events we support triggers for
 AUTOMATION_TRIGGERS = [
-
     "order.created",
     "order.updated",
     "payment.success",

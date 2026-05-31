@@ -10,9 +10,7 @@ from pydantic import BaseModel, Field
 
 
 class AIChatRequest(BaseModel):
-    message: str = Field(
-        ..., description="Message payload to send to the AI business assistant."
-    )
+    message: str = Field(..., description="Message payload to send to the AI business assistant.")
 
 
 class AIChatResponse(BaseModel):
@@ -20,15 +18,11 @@ class AIChatResponse(BaseModel):
 
 
 class AISummaryRequest(BaseModel):
-    timeframe: str = Field(
-        "daily", description="Format timeframe, e.g. daily, weekly, monthly."
-    )
+    timeframe: str = Field("daily", description="Format timeframe, e.g. daily, weekly, monthly.")
 
 
 class AISummaryResponse(BaseModel):
-    summary: str = Field(
-        ..., description="AI generated markdown performance and sales summary."
-    )
+    summary: str = Field(..., description="AI generated markdown performance and sales summary.")
 
 
 class AIRecommendation(BaseModel):
@@ -46,9 +40,7 @@ class AIRecommendationsResponse(BaseModel):
 
 
 class AICustomerInsightsRequest(BaseModel):
-    customer_id: uuid.UUID = Field(
-        ..., description="Target customer ID for segmentation and behavior insights."
-    )
+    customer_id: uuid.UUID = Field(..., description="Target customer ID for segmentation and behavior insights.")
 
 
 class AICustomerInsightsResponse(BaseModel):

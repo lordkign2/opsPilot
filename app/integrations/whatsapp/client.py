@@ -15,7 +15,7 @@ logger = get_logger("integrations.whatsapp.client")
 async def send_whatsapp_message(to_phone: str, text: str) -> bool:
     """
     Dispatches an outbound text message to a client using the Meta WhatsApp Cloud API.
-    
+
     If integration credentials are not configured, falls back to secure local logging simulating
     sandbox dispatch behavior to support local development seamlessly.
     """

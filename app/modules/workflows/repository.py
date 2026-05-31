@@ -24,7 +24,7 @@ class WorkflowRepository(BaseRepository[Workflow]):
     async def get_active_by_trigger(self, business_id: uuid.UUID, trigger_type: str) -> list[Workflow]:
         """
         Fetch active workflows scoped to a specific business and trigger event.
-        
+
         Leverages the composite database index for sub-millisecond retrieval.
         """
         stmt = select(self.model).where(

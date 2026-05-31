@@ -41,14 +41,10 @@ async def list_customers(
 ):
     """List all customers for the business."""
     offset = (page - 1) * per_page
-    customers = await customer_service.repo.get_by_business(
-        business_id, offset=offset, limit=per_page
-    )
+    customers = await customer_service.repo.get_by_business(business_id, offset=offset, limit=per_page)
     total = await customer_service.repo.count_by_business(business_id)
 
-    data = [
-        CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers
-    ]
+    data = [CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers]
     return paginated_response(data=data, total=total, page=page, per_page=per_page)
 
 
@@ -69,9 +65,7 @@ async def search_customers(
         limit=per_page,
     )
 
-    data = [
-        CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers
-    ]
+    data = [CustomerResponse.model_validate(c).model_dump(mode="json") for c in customers]
     return paginated_response(data=data, total=total, page=page, per_page=per_page)
 
 
@@ -83,9 +77,7 @@ async def get_customer(
 ):
     """Get a specific customer."""
     customer = await customer_service.get_customer(business_id, customer_id)
-    return success_response(
-        data=CustomerResponse.model_validate(customer).model_dump(mode="json")
-    )
+    return success_response(data=CustomerResponse.model_validate(customer).model_dump(mode="json"))
 
 
 @router.patch("/{customer_id}", response_model=None)

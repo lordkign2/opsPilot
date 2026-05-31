@@ -20,9 +20,7 @@ async def get_overview(
 ):
     """Retrieve operational dashboard overview analytics."""
     data = await analytics_service.get_overview(business_id)
-    return success_response(
-        data=data, message="Dashboard overview fetched successfully."
-    )
+    return success_response(data=data, message="Dashboard overview fetched successfully.")
 
 
 @router.get("/revenue", response_model=None)
@@ -46,6 +44,4 @@ async def get_order_distribution(
 ):
     """Retrieve order status distribution statistics."""
     data = await analytics_service.get_order_distribution(business_id)
-    return success_response(
-        data=data, message="Order status distribution fetched successfully."
-    )
+    return success_response(data=data, message="Order status distribution fetched successfully.")

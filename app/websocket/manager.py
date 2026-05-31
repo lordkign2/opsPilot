@@ -72,8 +72,9 @@ class WebSocketManager:
 
         # Send concurrently to all active business connections
         import asyncio
+
         disconnected = []
-        
+
         async def send(conn: ActiveConnection):
             success = await conn.send_json(message)
             if not success:
@@ -100,6 +101,7 @@ class WebSocketManager:
         }
 
         import asyncio
+
         disconnected = []
 
         async def send(conn: ActiveConnection):

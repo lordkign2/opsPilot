@@ -5,7 +5,6 @@ OpsPilot — Flutterwave Payments Gateway Integration.
 from __future__ import annotations
 
 import hmac
-from typing import Any
 import uuid
 
 import httpx
@@ -26,7 +25,7 @@ async def initialize_flutterwave_transaction(
     """
     Initializes a new checkout payment transaction with Flutterwave.
     Returns the secure standard payment redirect link.
-    
+
     If integration credentials are not configured, falls back to a sandbox mockup checkout url.
     """
     settings = get_settings()
@@ -91,8 +90,7 @@ async def flutterwave_webhook(
 
     if not hmac.compare_digest(secret_str, verif_hash):
         logger.warning(
-            "Flutterwave webhook hash verification failed. "
-            "Expected: %s | Header: %s",
+            "Flutterwave webhook hash verification failed. Expected: %s | Header: %s",
             secret_str,
             verif_hash,
         )
@@ -111,8 +109,10 @@ async def flutterwave_webhook(
     # Flutterwave webhook schemas can put details directly or nested under data
     tx_ref = data.get("tx_ref")
     amount = data.get("amount", 0.0)
-    customer_email = data.get("customer", {}).get("email") if isinstance(data.get("customer"), dict) else data.get("customer.email")
-    
+    customer_email = (
+        data.get("customer", {}).get("email") if isinstance(data.get("customer"), dict) else data.get("customer.email")
+    )
+
     # Meta tracking fields
     meta = data.get("meta", {}) or {}
     business_id = meta.get("business_id")

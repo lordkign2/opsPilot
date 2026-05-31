@@ -36,3 +36,21 @@ class AuditService:
         self.db.add(log_entry)
         await self.db.commit()
         return log_entry
+
+    async def get_logs(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> tuple[list[AuditLog], int]:
+        """Retrieve global audit logs with pagination and total count."""
+        from sqlalchemy import func, select
+
+        count_query = select(func.count()).select_from(AuditLog)
+        total_result = await self.db.execute(count_query)
+        total = total_result.scalar() or 0
+
+        query = select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit).offset(offset)
+        result = await self.db.execute(query)
+        logs = list(result.scalars().all())
+
+        return logs, total

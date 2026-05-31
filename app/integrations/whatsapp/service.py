@@ -9,8 +9,8 @@ from typing import Any
 
 from sqlalchemy import select
 
-from app.db.session import async_session_factory
 from app.core.logging import get_logger
+from app.db.session import async_session_factory
 from app.integrations.whatsapp.client import send_whatsapp_message
 from app.modules.businesses.models import Business
 from app.modules.customers.models import Customer
@@ -38,7 +38,7 @@ def extract_whatsapp_message(payload: dict[str, Any]) -> tuple[str | None, str |
 async def handle_incoming_whatsapp_payload(payload: dict[str, Any]) -> None:
     """
     Core entrypoint processing WhatsApp payloads out-of-band.
-    
+
     Performs multi-tenant resolution, client onboarding, conversational AI responses,
     and automatic order creation.
     """
@@ -75,7 +75,7 @@ async def handle_incoming_whatsapp_payload(payload: dict[str, Any]) -> None:
         clean_text = body.lower()
         if "order" in clean_text or "buy" in clean_text:
             logger.info("Checkout signal detected. Generating automated Order for Customer: %s", customer.id)
-            
+
             order_repo = OrderRepository(db)
             order = Order(
                 status=OrderStatus.PENDING,
@@ -100,6 +100,7 @@ async def handle_incoming_whatsapp_payload(payload: dict[str, Any]) -> None:
 
         # 4. Standard Assistant Q&A Chat loop fallback
         from app.modules.ai.service import AIService
+
         logger.info("Routing customer query to central operations AIService.")
         ai_service = AIService(db)
         ai_reply = await ai_service.chat_with_assistant(business.id, body)

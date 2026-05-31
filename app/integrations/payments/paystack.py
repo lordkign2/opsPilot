@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-from typing import Any
 import uuid
 
 import httpx
@@ -27,7 +26,7 @@ async def initialize_paystack_transaction(
     """
     Initializes a new checkout payment transaction with Paystack.
     Returns the secure authorization checkout URL.
-    
+
     If integration credentials are not configured, falls back to a sandbox mockup checkout url.
     """
     settings = get_settings()
@@ -89,16 +88,11 @@ async def paystack_webhook(
         return Response(content="Missing signature header", status_code=401)
 
     raw_body = await request.body()
-    computed_signature = hmac.new(
-        secret_str.encode("utf-8"),
-        raw_body,
-        hashlib.sha512
-    ).hexdigest()
+    computed_signature = hmac.new(secret_str.encode("utf-8"), raw_body, hashlib.sha512).hexdigest()
 
     if not hmac.compare_digest(computed_signature, x_paystack_signature):
         logger.warning(
-            "Paystack webhook signature verification failed. "
-            "Computed: %s | Header: %s",
+            "Paystack webhook signature verification failed. Computed: %s | Header: %s",
             computed_signature,
             x_paystack_signature,
         )
@@ -117,7 +111,7 @@ async def paystack_webhook(
         ref = data.get("reference")
         amount_kobo = data.get("amount", 0)
         customer_email = data.get("customer", {}).get("email")
-        
+
         # Extrapolate internal business and metadata parameters
         # In production webhooks, custom_fields are sent in metadata
         metadata = data.get("metadata", {})

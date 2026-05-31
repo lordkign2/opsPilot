@@ -25,7 +25,7 @@ async def whatsapp_verify_webhook(
 ) -> Response:
     """
     Handles Meta's Webhook verification handshake request.
-    
+
     Verifies that the incoming token matches WHATSAPP_VERIFY_TOKEN,
     then returns the challenge string as raw text.
     """
@@ -46,7 +46,7 @@ async def whatsapp_verify_webhook(
 async def whatsapp_event_receiver(request: Request) -> dict[str, Any]:
     """
     Receives inbound real-time customer event dispatches from Meta.
-    
+
     Spawns an out-of-band asynchronous processor task to keep response
     delivery under Meta's strict 2-second timeout limit.
     """
@@ -58,7 +58,7 @@ async def whatsapp_event_receiver(request: Request) -> dict[str, Any]:
 
     # 1. Spawn processing in background to immediately return 200 OK
     from app.integrations.whatsapp.service import handle_incoming_whatsapp_payload
-    
+
     # We trigger the processor out-of-band
     asyncio.create_task(handle_incoming_whatsapp_payload(payload))
 

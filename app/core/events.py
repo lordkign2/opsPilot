@@ -106,6 +106,7 @@ class EventBus:
         )
 
         from app.core.config import get_settings
+
         if get_settings().is_testing:
             # Execute handlers sequentially in testing mode to prevent concurrent database session access
             results = []
@@ -131,7 +132,6 @@ class EventBus:
                     result,
                     exc_info=result,
                 )
-
 
 
 # ── Singleton ────────────────────────────────────────────────

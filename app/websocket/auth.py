@@ -4,8 +4,6 @@ OpsPilot — WebSocket Session Authentication.
 
 from __future__ import annotations
 
-import logging
-
 from fastapi import WebSocket, status
 
 from app.core.exceptions import OpsPilotException
@@ -16,7 +14,6 @@ from app.modules.auth.models import User
 from app.modules.auth.service import AuthService
 
 logger = get_logger("websocket.auth")
-
 
 
 async def authenticate_websocket(websocket: WebSocket, token: str | None = None) -> User | None:
@@ -85,4 +82,3 @@ async def authenticate_websocket(websocket: WebSocket, token: str | None = None)
             )
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Authentication failed.")
             return None
-

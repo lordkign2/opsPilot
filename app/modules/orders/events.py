@@ -11,9 +11,7 @@ logger = get_logger("orders.events")
 @event_bus.on("order.created")
 async def handle_order_created(event: Event) -> None:
     """Handle order creation event."""
-    logger.info(
-        "Order created hook triggered for order %s", event.payload.get("order_id")
-    )
+    logger.info("Order created hook triggered for order %s", event.payload.get("order_id"))
 
 
 @event_bus.on("order.status_changed")

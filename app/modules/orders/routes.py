@@ -37,9 +37,7 @@ async def list_orders(
 ):
     """List all orders for the business."""
     offset = (page - 1) * per_page
-    orders = await order_service.repo.get_by_business(
-        business_id, offset=offset, limit=per_page
-    )
+    orders = await order_service.repo.get_by_business(business_id, offset=offset, limit=per_page)
     total = await order_service.repo.count_by_business(business_id)
 
     data = [OrderResponse.model_validate(o).model_dump(mode="json") for o in orders]
@@ -54,9 +52,7 @@ async def get_order(
 ):
     """Get a specific order."""
     order = await order_service.get_order(business_id, order_id)
-    return success_response(
-        data=OrderResponse.model_validate(order).model_dump(mode="json")
-    )
+    return success_response(data=OrderResponse.model_validate(order).model_dump(mode="json"))
 
 
 @router.patch("/{order_id}/status", response_model=None)

@@ -75,13 +75,18 @@ def register_routers(app: FastAPI) -> None:
     api_v1_router.include_router(workflows_router)
 
     # ── Integrations (Phase 6) ───────────────────────────────
-    from app.integrations.whatsapp.webhook import router as whatsapp_router
-    from app.integrations.payments.paystack import router as paystack_router
     from app.integrations.payments.flutterwave import router as flutterwave_router
+    from app.integrations.payments.paystack import router as paystack_router
+    from app.integrations.whatsapp.webhook import router as whatsapp_router
 
     api_v1_router.include_router(whatsapp_router)
     api_v1_router.include_router(paystack_router)
     api_v1_router.include_router(flutterwave_router)
+
+    # ── Super-Admin Ops (Phase 7) ────────────────────────────
+    from app.modules.admin.routes import router as admin_router
+
+    api_v1_router.include_router(admin_router)
 
     # ── Mount the v1 router onto the app ─────────────────────
     app.include_router(api_v1_router)
@@ -104,10 +109,10 @@ def register_event_handlers() -> None:
 
     # Register real-time event bridge (Phase 4)
     from app.websocket.events import register_ws_event_bridge
+
     register_ws_event_bridge()
 
     # Register workflow trigger listeners (Phase 5)
     from app.modules.workflows.triggers import register_workflow_trigger_listeners
+
     register_workflow_trigger_listeners()
-
-

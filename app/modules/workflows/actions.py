@@ -16,12 +16,10 @@ from app.modules.notifications.service import NotificationService
 logger = get_logger("workflows.actions")
 
 
-async def execute_send_notification(
-    db: AsyncSession, business_id: uuid.UUID, params: dict[str, Any]
-) -> dict[str, Any]:
+async def execute_send_notification(db: AsyncSession, business_id: uuid.UUID, params: dict[str, Any]) -> dict[str, Any]:
     """Execute send_notification action inside the business workspace."""
     service = NotificationService(db)
-    
+
     # Try parsing user_id if supplied as a string UUID
     user_id_str = params.get("user_id")
     user_id = None
@@ -52,7 +50,7 @@ async def execute_generate_ai_message(
 
     service = AIService(db)
     prompt = params.get("prompt", "Draft a professional response.")
-    
+
     # Generate copy using assistant
     reply = await service.chat_with_assistant(business_id, prompt)
     return {
@@ -61,13 +59,11 @@ async def execute_generate_ai_message(
     }
 
 
-async def execute_send_whatsapp(
-    db: AsyncSession, business_id: uuid.UUID, params: dict[str, Any]
-) -> dict[str, Any]:
+async def execute_send_whatsapp(db: AsyncSession, business_id: uuid.UUID, params: dict[str, Any]) -> dict[str, Any]:
     """Placeholder WhatsApp execution designed to mount Meta Cloud API in Phase 6."""
     phone = params.get("phone", "")
     message = params.get("message", "")
-    
+
     logger.info(
         "[WhatsApp Mock] Sending message to %s for business %s: %s",
         phone,
@@ -81,9 +77,7 @@ async def execute_send_whatsapp(
     }
 
 
-async def execute_send_email(
-    db: AsyncSession, business_id: uuid.UUID, params: dict[str, Any]
-) -> dict[str, Any]:
+async def execute_send_email(db: AsyncSession, business_id: uuid.UUID, params: dict[str, Any]) -> dict[str, Any]:
     """Placeholder transactional email execution designed to link Resend/Mailgun in Phase 6."""
     email = params.get("email", "")
     subject = params.get("subject", "Automation Alert")
@@ -102,9 +96,7 @@ async def execute_send_email(
     }
 
 
-async def execute_create_task(
-    db: AsyncSession, business_id: uuid.UUID, params: dict[str, Any]
-) -> dict[str, Any]:
+async def execute_create_task(db: AsyncSession, business_id: uuid.UUID, params: dict[str, Any]) -> dict[str, Any]:
     """Placeholder operational task mapping to create staff assignments."""
     title = params.get("title", "New Workflow Task")
     logger.info(
@@ -135,5 +127,5 @@ async def run_action(
     executor = ACTION_REGISTRY.get(action_type)
     if not executor:
         raise ValueError(f"Unsupported action type: {action_type}")
-    
+
     return await executor(db, business_id, params)
