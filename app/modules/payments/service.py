@@ -3,6 +3,7 @@ OpsPilot — Payments Module: Service.
 """
 
 import uuid
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -87,7 +88,7 @@ class PaymentService:
 
         return payment
 
-    async def handle_webhook(self, event: str, data: dict) -> None:
+    async def handle_webhook(self, event: str, data: dict[str, Any]) -> None:
         """Handle incoming webhooks from payment provider."""
         # Stub logic
         tx_ref = data.get("reference")

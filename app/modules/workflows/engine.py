@@ -26,7 +26,7 @@ def get_nested_value(data: dict[str, Any], path: str) -> Any:
     Extracts a value from a nested dictionary path, supporting dot notation (e.g., 'customer.name').
     """
     parts = path.strip().split(".")
-    val = data
+    val: Any = data
     for part in parts:
         if isinstance(val, dict):
             val = val.get(part)
@@ -62,9 +62,9 @@ def evaluate_condition(payload: dict[str, Any], condition: dict[str, Any]) -> bo
             return str(target).lower() in str(val).lower()
 
         # Numeric comparators (try safe float cast)
-        elif op in ("gt", "ge", "lt", "le"):
-            numeric_val = float(val)  # type: ignore
-            numeric_target = float(target)  # type: ignore
+        elif op in ("gt", "ge", "lt", "le") and val is not None and target is not None:
+            numeric_val = float(val)
+            numeric_target = float(target)
 
             ops = {
                 "gt": lambda x, y: x > y,
@@ -73,7 +73,7 @@ def evaluate_condition(payload: dict[str, Any], condition: dict[str, Any]) -> bo
                 "le": lambda x, y: x <= y,
             }
             if op in ops:
-                return ops[op](numeric_val, numeric_target)
+                return bool(ops[op](numeric_val, numeric_target))
 
     except (ValueError, TypeError) as e:
         logger.debug("Failed condition cast evaluation for operator '%s' on val '%s': %s", op, val, e)
@@ -88,7 +88,7 @@ def resolve_string(template: str, payload: dict[str, Any]) -> str:
     with 'Hello Alice'.
     """
 
-    def replacer(match: re.Match) -> str:
+    def replacer(match: re.Match[str]) -> str:
         path = match.group(1).strip()
         val = get_nested_value(payload, path)
         return str(val) if val is not None else ""

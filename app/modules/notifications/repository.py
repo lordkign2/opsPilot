@@ -5,6 +5,7 @@ OpsPilot — Notifications Module: Repository.
 from __future__ import annotations
 
 import uuid
+from typing import Any, cast
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +27,7 @@ class NotificationRepository(BaseRepository[Notification]):
         stmt = stmt.values(read=True)
         result = await self.db.execute(stmt)
         await self.db.flush()
-        return result.rowcount
+        return int(cast(Any, result).rowcount)
 
     async def get_notifications_scoped(
         self,

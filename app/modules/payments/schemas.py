@@ -4,6 +4,7 @@ OpsPilot — Payments Module: Schemas.
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -17,7 +18,7 @@ class PaymentInitialize(BaseModel):
 
 class PaymentWebhook(BaseModel):
     event: str
-    data: dict
+    data: dict[str, Any]
 
 
 class PaymentResponse(BaseModel):

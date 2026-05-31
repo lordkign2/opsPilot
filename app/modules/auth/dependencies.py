@@ -8,6 +8,7 @@ for injection into protected routes.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Awaitable, Callable
 from typing import Annotated
 
 import redis.asyncio as aioredis
@@ -59,7 +60,7 @@ async def get_current_active_user(
 # ── Role-Based Access ────────────────────────────────────────
 
 
-def require_role(*roles: UserRole):
+def require_role(*roles: UserRole) -> Callable[..., Awaitable[User]]:
     """
     Dependency factory that restricts access to users with
     specific roles.

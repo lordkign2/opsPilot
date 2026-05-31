@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
+from typing import Any
 
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -184,7 +185,7 @@ class AIService:
         await self.db.commit()
         return reply
 
-    async def generate_recommendations(self, business_id: uuid.UUID) -> list[dict]:
+    async def generate_recommendations(self, business_id: uuid.UUID) -> list[dict[str, Any]]:
         """Detect operational anomalies and produce high-impact suggestions."""
         # Query orders and customers to formulate context
         overview = await self.analytics_service.get_overview(business_id)

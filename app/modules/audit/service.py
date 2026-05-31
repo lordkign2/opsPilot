@@ -2,6 +2,8 @@
 OpsPilot — Audit Module: Service.
 """
 
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.audit.models import AuditLog
@@ -17,7 +19,7 @@ class AuditService:
         module: str,
         actor_id: str | None = None,
         target_id: str | None = None,
-        payload: dict | None = None,
+        payload: dict[str, Any] | None = None,
         ip_address: str | None = None,
         user_agent: str | None = None,
     ) -> AuditLog:

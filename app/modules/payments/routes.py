@@ -2,6 +2,8 @@
 OpsPilot — Payments Module: Routes.
 """
 
+from typing import Any
+
 from fastapi import APIRouter
 
 from app.modules.auth.dependencies import CurrentBusinessId
@@ -21,7 +23,7 @@ async def initialize_payment(
     payload: PaymentInitialize,
     business_id: CurrentBusinessId,
     payment_service: PaymentServiceDep,
-):
+) -> Any:
     """Initialize a new payment for an order."""
     payment = await payment_service.initialize_payment(business_id, payload)
     return success_response(
@@ -34,7 +36,7 @@ async def initialize_payment(
 async def verify_payment(
     tx_ref: str,
     payment_service: PaymentServiceDep,
-):
+) -> Any:
     """Verify payment status via reference."""
     payment = await payment_service.verify_payment(tx_ref)
     return success_response(
@@ -47,7 +49,7 @@ async def verify_payment(
 async def payment_webhook(
     payload: PaymentWebhook,
     payment_service: PaymentServiceDep,
-):
+) -> Any:
     """Handle provider webhooks (unauthenticated public endpoint)."""
     # Note: In production, verify provider webhook signature here.
     await payment_service.handle_webhook(payload.event, payload.data)

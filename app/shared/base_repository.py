@@ -155,7 +155,7 @@ class BaseRepository(Generic[ModelType]):
         Falls back to hard delete if no is_active column.
         """
         if hasattr(record, "is_active"):
-            record.is_active = False  # type: ignore
+            record.is_active = False
             await self.db.flush()
             await self.db.refresh(record)
             return record

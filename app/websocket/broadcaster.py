@@ -18,7 +18,7 @@ logger = get_logger("websocket.broadcaster")
 
 
 REDIS_CHANNEL = "opspilot:broadcast"
-_subscriber_task: asyncio.Task | None = None
+_subscriber_task: asyncio.Task[Any] | None = None
 
 
 async def publish_event(

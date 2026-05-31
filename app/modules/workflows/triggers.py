@@ -7,7 +7,7 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -83,7 +83,7 @@ async def get_active_workflows_cached(
         try:
             logger.debug("Workflow cache hit for key '%s'", key)
             await client.close()
-            return json.loads(cached_data)
+            return cast(list[dict[str, Any]], json.loads(cached_data))
         except Exception:
             pass
 
@@ -137,7 +137,7 @@ async def handle_system_workflow_trigger(event: Event) -> None:
         return
 
     # Spawn fresh session and background task
-    async def process_trigger():
+    async def process_trigger() -> None:
         async with async_session_factory() as db:
             try:
                 # 1. Fetch active rules (uses high-performance cache)

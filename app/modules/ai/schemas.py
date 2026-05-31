@@ -5,6 +5,7 @@ OpsPilot — AI Module: Schemas.
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -30,7 +31,7 @@ class AIRecommendation(BaseModel):
     description: str
     action_type: str
     impact_score: int = Field(..., ge=1, le=5)
-    metadata: dict | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class AIRecommendationsResponse(BaseModel):

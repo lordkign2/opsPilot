@@ -3,6 +3,7 @@ OpsPilot — Orders Module: Routes.
 """
 
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Query
 
@@ -19,7 +20,7 @@ async def create_order(
     payload: OrderCreate,
     business_id: CurrentBusinessId,
     order_service: OrderServiceDep,
-):
+) -> Any:
     """Create a new order."""
     order = await order_service.create_order(business_id, payload)
     return success_response(
@@ -34,7 +35,7 @@ async def list_orders(
     order_service: OrderServiceDep,
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-):
+) -> Any:
     """List all orders for the business."""
     offset = (page - 1) * per_page
     orders = await order_service.repo.get_by_business(business_id, offset=offset, limit=per_page)
@@ -49,7 +50,7 @@ async def get_order(
     order_id: uuid.UUID,
     business_id: CurrentBusinessId,
     order_service: OrderServiceDep,
-):
+) -> Any:
     """Get a specific order."""
     order = await order_service.get_order(business_id, order_id)
     return success_response(data=OrderResponse.model_validate(order).model_dump(mode="json"))
@@ -61,7 +62,7 @@ async def update_order_status(
     payload: OrderStatusUpdate,
     business_id: CurrentBusinessId,
     order_service: OrderServiceDep,
-):
+) -> Any:
     """Update order status."""
     order = await order_service.update_status(business_id, order_id, payload)
     return success_response(

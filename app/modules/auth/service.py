@@ -8,6 +8,7 @@ Routes call services; services call repositories.
 from __future__ import annotations
 
 import uuid
+from typing import Any
 
 import redis.asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -263,7 +264,7 @@ class AuthService:
             refresh_token=create_refresh_token(token_data),
         )
 
-    async def _blacklist_token(self, token: str, payload: dict) -> None:
+    async def _blacklist_token(self, token: str, payload: dict[str, Any]) -> None:
         """Add a token to the Redis blacklist with TTL matching its expiry."""
         if not self.redis:
             logger.warning("Redis client is not configured; skipping token blacklisting.")

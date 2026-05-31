@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +20,7 @@ class AnalyticsService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_overview(self, business_id: uuid.UUID) -> dict:
+    async def get_overview(self, business_id: uuid.UUID) -> dict[str, Any]:
         """Get aggregate operational metrics for a business workspace."""
         # 1. Total Successful Payments (Revenue)
         revenue_stmt = (
@@ -64,7 +65,7 @@ class AnalyticsService:
             "order_conversion_rate": conversion_rate,
         }
 
-    async def get_revenue_history(self, business_id: uuid.UUID, days: int = 30) -> list[dict]:
+    async def get_revenue_history(self, business_id: uuid.UUID, days: int = 30) -> list[dict[str, Any]]:
         """Fetch daily revenue trends for the specified past number of days."""
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
@@ -95,7 +96,7 @@ class AnalyticsService:
 
         return trend
 
-    async def get_order_distribution(self, business_id: uuid.UUID) -> dict:
+    async def get_order_distribution(self, business_id: uuid.UUID) -> dict[str, Any]:
         """Get the absolute counts and percentages for each order status."""
         stmt = select(Order.status, func.count(Order.id)).where(Order.business_id == business_id).group_by(Order.status)
         result = await self.db.execute(stmt)
