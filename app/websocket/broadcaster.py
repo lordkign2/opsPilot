@@ -129,12 +129,17 @@ async def redis_subscriber_loop() -> None:
             break
 
         except Exception as e:
-            logger.error(
-                "Redis subscriber loop disconnected or failed to connect: %s. Reconnecting in %.2fs...",
-                e,
-                retry_delay,
-                exc_info=True,
-            )
+            # Silence standard idle timeouts to keep logs clean
+            is_timeout = "timeout" in str(e).lower()
+            if is_timeout:
+                logger.debug("Redis subscriber loop read timeout (idle connection).")
+            else:
+                logger.error(
+                    "Redis subscriber loop disconnected or failed to connect: %s. Reconnecting in %.2fs...",
+                    e,
+                    retry_delay,
+                    exc_info=True,
+                )
             if pubsub:
                 try:
                     await pubsub.close()
@@ -146,8 +151,11 @@ async def redis_subscriber_loop() -> None:
                 except Exception:
                     pass
 
-            await asyncio.sleep(retry_delay)
-            retry_delay = min(retry_delay * backoff_factor, max_retry_delay)
+            # Fast reconnect for timeouts, backoff for actual errors
+            sleep_time = 0.1 if is_timeout else retry_delay
+            await asyncio.sleep(sleep_time)
+            if not is_timeout:
+                retry_delay = min(retry_delay * backoff_factor, max_retry_delay)
 
 
 
