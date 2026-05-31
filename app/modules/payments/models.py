@@ -38,9 +38,7 @@ class Payment(Base):
         Enum(PaymentProvider, name="payment_provider", create_constraint=True),
         nullable=False,
     )
-    tx_ref: Mapped[str] = mapped_column(
-        String(100), unique=True, index=True, nullable=False
-    )
+    tx_ref: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
     status: Mapped[PaymentStatus] = mapped_column(
         Enum(PaymentStatus, name="payment_status", create_constraint=True),
         default=PaymentStatus.PENDING,
