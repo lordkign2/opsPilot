@@ -47,7 +47,7 @@ class AuthService:
     def __init__(
         self,
         db: AsyncSession,
-        redis: aioredis.Redis,
+        redis: aioredis.Redis | None = None,
     ) -> None:
         self.db = db
         self.repo = UserRepository(db)
@@ -129,7 +129,7 @@ class AuthService:
         Returns the user and a token pair.
         """
         user = await self.repo.get_by_email(payload.email)
-        if not user:
+        if not user or user.deleted_at is not None:
             raise InvalidCredentialsError()
 
         if not verify_password(payload.password, user.password_hash):
@@ -220,18 +220,20 @@ class AuthService:
             raise InvalidTokenError()
 
         user = await self.repo.get_by_id(uuid.UUID(user_id))
-        if not user:
+        if not user or user.deleted_at is not None:
             raise NotFoundError("User not found.")
         if not user.is_active:
             raise UnauthorizedError("Account deactivated.")
+        if user.business and user.business.deleted_at is not None:
+            raise UnauthorizedError("Business workspace has been deleted.")
 
         # Set user and business logging context variables for trace decor
         from app.core.logging import business_id_ctx, user_id_ctx
+
         user_id_ctx.set(str(user.id))
         business_id_ctx.set(str(user.business_id) if user.business_id else None)
 
         return user
-
 
     # ── Change Password ──────────────────────────────────────
 
@@ -263,6 +265,10 @@ class AuthService:
 
     async def _blacklist_token(self, token: str, payload: dict) -> None:
         """Add a token to the Redis blacklist with TTL matching its expiry."""
+        if not self.redis:
+            logger.warning("Redis client is not configured; skipping token blacklisting.")
+            return
+
         import time
 
         exp = payload.get("exp", 0)
@@ -272,6 +278,8 @@ class AuthService:
 
     async def _is_token_blacklisted(self, token: str) -> bool:
         """Check if a token has been blacklisted."""
+        if not self.redis:
+            return False
         return bool(await self.redis.get(f"blacklist:{token}"))
 
     @staticmethod

@@ -72,9 +72,7 @@ def require_role(*roles: UserRole):
         user: User = Depends(get_current_active_user),
     ) -> User:
         if user.role not in roles:
-            raise ForbiddenError(
-                f"This action requires one of: {', '.join(r.value for r in roles)}"
-            )
+            raise ForbiddenError(f"This action requires one of: {', '.join(r.value for r in roles)}")
         return user
 
     return role_checker
@@ -85,14 +83,24 @@ CurrentUser = Annotated[User, Depends(get_current_active_user)]
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
 
 
+async def get_current_super_admin(
+    user: User = Depends(get_current_active_user),
+) -> User:
+    """Ensures the user has the SUPER_ADMIN role."""
+    if user.role != UserRole.SUPER_ADMIN:
+        raise ForbiddenError("This endpoint requires super administrative privileges.")
+    return user
+
+
+CurrentSuperAdmin = Annotated[User, Depends(get_current_super_admin)]
+
+
 async def get_current_business_id(
     user: User = Depends(get_current_active_user),
 ) -> uuid.UUID:
     """Ensures the user belongs to a business and returns the business ID."""
     if not user.business_id:
-        raise ForbiddenError(
-            "You must be assigned to a business to perform this action."
-        )
+        raise ForbiddenError("You must be assigned to a business to perform this action.")
     return user.business_id
 
 
