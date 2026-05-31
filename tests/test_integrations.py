@@ -71,7 +71,6 @@ async def test_whatsapp_conversational_ordering_and_ai(
     client: AsyncClient, integration_test_data: dict[str, Any], db_session: AsyncSession
 ):
     """Test incoming customer chats, dynamic Customer onboarding, and automatic Order checkout."""
-    business_id = str(integration_test_data["business"].id)
     sender_phone = "2348033445566"
 
     # Simulate customer requesting to buy/order a product

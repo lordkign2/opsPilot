@@ -4,6 +4,7 @@ OpsPilot — Workflow Automation Module: Action Executors Registry.
 
 from __future__ import annotations
 
+import contextlib
 import uuid
 from typing import Any
 
@@ -24,10 +25,8 @@ async def execute_send_notification(db: AsyncSession, business_id: uuid.UUID, pa
     user_id_str = params.get("user_id")
     user_id = None
     if user_id_str:
-        try:
+        with contextlib.suppress(ValueError):
             user_id = uuid.UUID(user_id_str)
-        except ValueError:
-            pass
 
     payload = NotificationCreate(
         user_id=user_id,
@@ -81,7 +80,6 @@ async def execute_send_email(db: AsyncSession, business_id: uuid.UUID, params: d
     """Placeholder transactional email execution designed to link Resend/Mailgun in Phase 6."""
     email = params.get("email", "")
     subject = params.get("subject", "Automation Alert")
-    body = params.get("body", "")
 
     logger.info(
         "[Email Mock] Sending email to %s (subject: '%s') for business %s",

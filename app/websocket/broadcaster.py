@@ -7,6 +7,7 @@ Leverages Redis Pub/Sub for cross-instance messaging to support horizontal scali
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 from typing import Any
 
@@ -116,16 +117,12 @@ async def redis_subscriber_loop() -> None:
         except asyncio.CancelledError:
             logger.info("Redis subscriber loop task cancelled.")
             if pubsub:
-                try:
+                with contextlib.suppress(Exception):
                     await pubsub.unsubscribe(REDIS_CHANNEL)
                     await pubsub.close()
-                except Exception:
-                    pass
             if client:
-                try:
+                with contextlib.suppress(Exception):
                     await client.close()
-                except Exception:
-                    pass
             break
 
         except Exception as e:
@@ -141,15 +138,11 @@ async def redis_subscriber_loop() -> None:
                     exc_info=True,
                 )
             if pubsub:
-                try:
+                with contextlib.suppress(Exception):
                     await pubsub.close()
-                except Exception:
-                    pass
             if client:
-                try:
+                with contextlib.suppress(Exception):
                     await client.close()
-                except Exception:
-                    pass
 
             # Fast reconnect for timeouts, backoff for actual errors
             sleep_time = 0.1 if is_timeout else retry_delay
@@ -171,8 +164,6 @@ async def stop_broadcaster() -> None:
     global _subscriber_task
     if _subscriber_task and not _subscriber_task.done():
         _subscriber_task.cancel()
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await _subscriber_task
-        except asyncio.CancelledError:
-            pass
         logger.info("Distributed broadcaster task stopped.")

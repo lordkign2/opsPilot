@@ -66,14 +66,14 @@ def evaluate_condition(payload: dict[str, Any], condition: dict[str, Any]) -> bo
             numeric_val = float(val)  # type: ignore
             numeric_target = float(target)  # type: ignore
 
-            if op == "gt":
-                return numeric_val > numeric_target
-            elif op == "ge":
-                return numeric_val >= numeric_target
-            elif op == "lt":
-                return numeric_val < numeric_target
-            elif op == "le":
-                return numeric_val <= numeric_target
+            ops = {
+                "gt": lambda x, y: x > y,
+                "ge": lambda x, y: x >= y,
+                "lt": lambda x, y: x < y,
+                "le": lambda x, y: x <= y,
+            }
+            if op in ops:
+                return ops[op](numeric_val, numeric_target)
 
     except (ValueError, TypeError) as e:
         logger.debug("Failed condition cast evaluation for operator '%s' on val '%s': %s", op, val, e)
