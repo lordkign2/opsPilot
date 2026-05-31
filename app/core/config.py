@@ -68,8 +68,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
-    # ── OpenAI (future) ──────────────────────────────────────
+    # ── AI API Keys ──────────────────────────────────────
     OPENAI_API_KEY: str | None = None
+    GEMINI_API_KEY: SecretStr | None = None
 
     # ── Paystack (future) ────────────────────────────────────
     PAYSTACK_SECRET_KEY: SecretStr | None = None

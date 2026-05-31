@@ -143,7 +143,7 @@ Ready the platform for production SaaS operations, subscriptions, and global dep
 
 ### Major Initiatives
 1. **SaaS Billing System**:
-   * Seamless subscription management (Stripe/Paystack billing cycles, billing tiers).
+   * Seamless subscription management (Paystack billing cycles, billing tiers).
 2. **Usage Metering**:
    * Granularly track and charge for consumption: AI tokens consumed, workflow executions run, and emails/WhatsApp messages sent.
 3. **Feature Flags**:

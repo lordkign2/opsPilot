@@ -131,9 +131,7 @@ def require_permission(*permissions: Permission) -> Callable[..., Awaitable[User
         granted = get_role_permissions(user.role.value)
         for perm in permissions:
             if perm not in granted:
-                raise ForbiddenError(
-                    f"Permission denied: '{perm.value}' is required for this action."
-                )
+                raise ForbiddenError(f"Permission denied: '{perm.value}' is required for this action.")
         return user
 
     return permission_checker

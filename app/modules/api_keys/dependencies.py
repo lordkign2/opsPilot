@@ -37,9 +37,7 @@ async def authenticate_api_key(api_key: str, db: AsyncSession) -> User:
     key_hash = hashlib.sha256(api_key.encode()).hexdigest()
 
     # Lookup key
-    result = await db.execute(
-        select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active.is_(True))
-    )
+    result = await db.execute(select(APIKey).where(APIKey.key_hash == key_hash, APIKey.is_active.is_(True)))
     record = result.scalar_one_or_none()
 
     if record is None:
@@ -53,9 +51,7 @@ async def authenticate_api_key(api_key: str, db: AsyncSession) -> User:
             raise UnauthorizedError("API key has expired.")
 
     # Load the owning user (the user who created the key acts as the principal)
-    user_result = await db.execute(
-        select(User).where(User.id == record.created_by, User.is_active.is_(True))
-    )
+    user_result = await db.execute(select(User).where(User.id == record.created_by, User.is_active.is_(True)))
     user = user_result.scalar_one_or_none()
 
     if user is None:
@@ -67,11 +63,7 @@ async def authenticate_api_key(api_key: str, db: AsyncSession) -> User:
 
         from sqlalchemy import update
 
-        await db.execute(
-            update(APIKey)
-            .where(APIKey.id == record.id)
-            .values(last_used_at=datetime.now(timezone.utc))
-        )
+        await db.execute(update(APIKey).where(APIKey.id == record.id).values(last_used_at=datetime.now(timezone.utc)))
         await db.commit()
     except Exception:
         pass

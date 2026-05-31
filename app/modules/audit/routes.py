@@ -66,9 +66,7 @@ async def get_business_audit_logs(
     Paginated audit log scoped to the authenticated user's business.
     Accessible to OWNER and MANAGER roles (audit.read permission).
     """
-    logs, total = await service.get_logs_by_business(
-        business_id=business_id, limit=limit, offset=offset
-    )
+    logs, total = await service.get_logs_by_business(business_id=business_id, limit=limit, offset=offset)
     data = [AuditLogResponse.model_validate(log).model_dump(mode="json") for log in logs]
     return paginated_response(
         data=data,

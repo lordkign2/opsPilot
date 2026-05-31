@@ -19,8 +19,12 @@ from app.shared.response import success_response
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
 
-@router.post("/", response_model=None, status_code=201,
-             dependencies=[Depends(require_permission(Permission.PAYMENTS_INITIALIZE))])
+@router.post(
+    "/",
+    response_model=None,
+    status_code=201,
+    dependencies=[Depends(require_permission(Permission.PAYMENTS_INITIALIZE))],
+)
 async def initialize_payment(
     payload: PaymentInitialize,
     business_id: CurrentBusinessId,
@@ -34,8 +38,9 @@ async def initialize_payment(
     )
 
 
-@router.get("/verify/{tx_ref}", response_model=None,
-            dependencies=[Depends(require_permission(Permission.PAYMENTS_VERIFY))])
+@router.get(
+    "/verify/{tx_ref}", response_model=None, dependencies=[Depends(require_permission(Permission.PAYMENTS_VERIFY))]
+)
 async def verify_payment(
     tx_ref: str,
     payment_service: PaymentServiceDep,

@@ -117,7 +117,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             from app.db.redis import redis_client
 
             now_ms = int(time.time() * 1000)
-            result = await redis_client.eval(  # type: ignore[attr-defined]
+            result = await redis_client.eval(  # type: ignore
                 _SLIDING_WINDOW_LUA,
                 1,
                 key,
@@ -147,4 +147,3 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if forwarded:
             return forwarded.split(",")[0].strip()
         return request.client.host if request.client else "unknown"
-

@@ -102,6 +102,7 @@ _SALES_REP_PERMISSIONS: frozenset[Permission] = frozenset(
     }
 )
 
+
 # Imported lazily to avoid circular imports at module load time.
 # Used via `get_role_permissions()` below.
 def get_role_permissions(role: str) -> frozenset[Permission]:

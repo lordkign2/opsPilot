@@ -47,7 +47,9 @@ async def test_engine():
 
     async_session_factory.configure(bind=engine)
 
+    from sqlalchemy import text
     async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
         await conn.run_sync(Base.metadata.create_all)
 
     yield engine
@@ -97,8 +99,15 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 
         yield MockRedis()
 
+    from app.modules.auth.dependencies import get_current_business_id
+    import uuid
+
+    async def override_get_current_business_id():
+        return uuid.uuid4()
+
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_redis] = override_get_redis
+    app.dependency_overrides[get_current_business_id] = override_get_current_business_id
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

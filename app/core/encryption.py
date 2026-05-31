@@ -104,7 +104,7 @@ try:
     from sqlalchemy.engine import Dialect
     from sqlalchemy.types import TypeDecorator
 
-    class EncryptedString(TypeDecorator[str]):  # type: ignore[type-arg]
+    class EncryptedString(TypeDecorator[str]):
         """
         A SQLAlchemy column type that transparently encrypts on write
         and decrypts on read using AES-256-GCM.

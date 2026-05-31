@@ -23,7 +23,7 @@ def upgrade() -> None:
     op.add_column('audit_logs', sa.Column('resource_type', sa.String(length=50), nullable=True))
     op.add_column('audit_logs', sa.Column('before_value', sa.JSON(), nullable=True))
     op.add_column('audit_logs', sa.Column('after_value', sa.JSON(), nullable=True))
-    op.add_column('audit_logs', sa.Column('severity', sa.String(length=20), nullable=False))
+    op.add_column('audit_logs', sa.Column('severity', sa.String(length=20), nullable=False, server_default='INFO'))
     op.create_index(op.f('ix_audit_logs_actor_id'), 'audit_logs', ['actor_id'], unique=False)
     op.create_index(op.f('ix_audit_logs_business_id'), 'audit_logs', ['business_id'], unique=False)
     op.create_index(op.f('ix_audit_logs_module'), 'audit_logs', ['module'], unique=False)

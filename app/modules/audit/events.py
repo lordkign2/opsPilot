@@ -69,4 +69,3 @@ async def on_payment_success(event: Event) -> None:
 @event_bus.on("payment.failed")
 async def on_payment_failed(event: Event) -> None:
     await _record(event, resource_type="payment", severity="warning")
-

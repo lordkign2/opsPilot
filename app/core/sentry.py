@@ -60,10 +60,7 @@ def init_sentry() -> None:
         )
 
     except ImportError:
-        logger.warning(
-            "sentry-sdk is not installed. "
-            "Run `poetry add 'sentry-sdk[fastapi]'` to enable error tracking."
-        )
+        logger.warning("sentry-sdk is not installed. Run `poetry add 'sentry-sdk[fastapi]'` to enable error tracking.")
     except Exception as exc:
         # Never let Sentry init crash the application
         logger.error("Failed to initialise Sentry: %s", exc)

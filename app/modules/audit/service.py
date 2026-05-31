@@ -76,11 +76,7 @@ class AuditService:
         """Retrieve audit logs scoped to a specific business (owner view)."""
         from sqlalchemy import func, select
 
-        count_query = (
-            select(func.count())
-            .select_from(AuditLog)
-            .where(AuditLog.business_id == business_id)
-        )
+        count_query = select(func.count()).select_from(AuditLog).where(AuditLog.business_id == business_id)
         total_result = await self.db.execute(count_query)
         total = total_result.scalar() or 0
 
@@ -94,4 +90,3 @@ class AuditService:
         result = await self.db.execute(query)
         logs = list(result.scalars().all())
         return logs, total
-
