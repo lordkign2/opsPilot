@@ -12,17 +12,14 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc libpq-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# ── Stage 2: Dependencies ───────────────────────────────────
-FROM base AS deps
+# ── Stage 2: Application ────────────────────────────────────
+FROM base AS app
 
-COPY pyproject.toml ./
+# Copy all source files including pyproject.toml and README.md
+COPY . .
+
 RUN pip install --upgrade pip && \
     pip install .
-
-# ── Stage 3: Application ────────────────────────────────────
-FROM deps AS app
-
-COPY . .
 
 EXPOSE 8000
 
