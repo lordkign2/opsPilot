@@ -16,11 +16,13 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.core.config import get_settings
 from app.core.exceptions import OpsPilotException
 from app.core.logging import get_logger, setup_logging
 from app.core.registry import register_event_handlers, register_routers
+from app.core.sentry import init_sentry
 from app.middleware.cors import add_cors_middleware
 from app.middleware.logging import RequestLoggingMiddleware
 from app.middleware.maintenance import MaintenanceModeMiddleware
@@ -76,12 +78,19 @@ async def seed_super_admin() -> None:
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application startup and shutdown hooks."""
     setup_logging()
+
+    # Initialise Sentry error tracking (Phase 7) — no-op if SENTRY_DSN is unset
+    init_sentry()
+
     register_event_handlers()
 
     # Start horizontal broadcaster for WebSockets (Phase 4)
     from app.websocket.broadcaster import start_broadcaster
 
     start_broadcaster()
+
+    # Expose Prometheus /metrics endpoint (Phase 7) — instrumented at module-level
+    # (routes and middleware must be registered before startup)
 
     # Seed the original super-admin
     await seed_super_admin()
@@ -160,6 +169,19 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 # ── Register All Module Routers ──────────────────────────────
 
 register_routers(app)
+
+
+# ── Prometheus Metrics (Phase 7) ─────────────────────────────
+# Must be registered at module level (before app starts) so that
+# `.instrument()` can add its middleware and `.expose()` can add
+# the /metrics route — both operations are forbidden post-startup.
+
+if settings.PROMETHEUS_ENABLED:
+    Instrumentator(
+        should_group_status_codes=False,
+        should_ignore_untemplated=True,
+        excluded_handlers=["/metrics", "/health", "/healthz", "/"],
+    ).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 # ── Health Check ─────────────────────────────────────────────

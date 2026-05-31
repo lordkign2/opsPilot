@@ -11,6 +11,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
+from app.core.metrics import workflow_executions_total
 from app.modules.workflows.actions import run_action
 from app.modules.workflows.models import LogDepth, Workflow, WorkflowExecutionLog
 from app.modules.workflows.repository import WorkflowExecutionLogRepository
@@ -134,6 +135,7 @@ async def evaluate_and_run_workflow(db: AsyncSession, workflow: Workflow, payloa
     # 2. Skip if conditions do not match
     if not conditions_matched:
         logger.debug("Workflow '%s' [id=%s] filters not met. Skipped.", workflow.name, w_id)
+        workflow_executions_total.labels(status="skipped").inc()
         if depth == LogDepth.ALL.value:
             log_entry = WorkflowExecutionLog(
                 workflow_id=w_id,
@@ -172,6 +174,7 @@ async def evaluate_and_run_workflow(db: AsyncSession, workflow: Workflow, payloa
         if failures:
             err_msg = "; ".join(str(f) for f in failures)
             logger.error("Workflow '%s' [id=%s] completed with errors: %s", workflow.name, w_id, err_msg)
+            workflow_executions_total.labels(status="failed").inc()
 
             if depth in (LogDepth.ALL.value, LogDepth.ERRORS_ONLY.value):
                 log_entry = WorkflowExecutionLog(
@@ -184,6 +187,7 @@ async def evaluate_and_run_workflow(db: AsyncSession, workflow: Workflow, payloa
                 await db.commit()
         else:
             logger.info("Workflow '%s' [id=%s] executed successfully.", workflow.name, w_id)
+            workflow_executions_total.labels(status="success").inc()
 
             if depth == LogDepth.ALL.value:
                 log_entry = WorkflowExecutionLog(
@@ -196,6 +200,7 @@ async def evaluate_and_run_workflow(db: AsyncSession, workflow: Workflow, payloa
 
     except Exception as e:
         logger.error("System failure executing workflow '%s' [id=%s]: %s", workflow.name, w_id, e, exc_info=True)
+        workflow_executions_total.labels(status="failed").inc()
         if depth in (LogDepth.ALL.value, LogDepth.ERRORS_ONLY.value):
             log_entry = WorkflowExecutionLog(
                 workflow_id=w_id,
