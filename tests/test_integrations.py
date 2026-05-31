@@ -16,12 +16,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.events import event_bus
+from app.integrations.communications.email import send_transactional_email
+from app.integrations.communications.push import send_push_notification
+from app.integrations.communications.sms import send_sms
 from app.modules.businesses.models import Business
 from app.modules.customers.models import Customer
 from app.modules.orders.models import Order
-from app.integrations.communications.email import send_transactional_email
-from app.integrations.communications.sms import send_sms
-from app.integrations.communications.push import send_push_notification
 
 
 @pytest.fixture
@@ -163,14 +163,11 @@ async def test_paystack_signature_verification_and_event_broadcast(
 
     # 3. Valid signature -> 200 OK & triggers event_bus dispatch
     import json
+
     raw_payload_bytes = json.dumps(webhook_payload, separators=(",", ":")).encode("utf-8")
-    
+
     # Standard fallback webhook secret matches "paystack_sandbox_secret"
-    valid_sig = hmac.new(
-        b"paystack_sandbox_secret",
-        raw_payload_bytes,
-        hashlib.sha512
-    ).hexdigest()
+    valid_sig = hmac.new(b"paystack_sandbox_secret", raw_payload_bytes, hashlib.sha512).hexdigest()
 
     event_emitted = False
     emitted_payload = {}
@@ -184,10 +181,7 @@ async def test_paystack_signature_verification_and_event_broadcast(
     resp_valid = await client.post(
         "/api/v1/integrations/payments/paystack/webhook",
         content=raw_payload_bytes,
-        headers={
-            "x-paystack-signature": valid_sig,
-            "Content-Type": "application/json"
-        },
+        headers={"x-paystack-signature": valid_sig, "Content-Type": "application/json"},
     )
     assert resp_valid.status_code == 200
 
@@ -199,9 +193,7 @@ async def test_paystack_signature_verification_and_event_broadcast(
 
 
 @pytest.mark.asyncio
-async def test_flutterwave_hash_verification(
-    client: AsyncClient, integration_test_data: dict[str, Any]
-):
+async def test_flutterwave_hash_verification(client: AsyncClient, integration_test_data: dict[str, Any]):
     """Test cryptographic Flutterwave secret hash verification checks."""
     business_id = str(integration_test_data["business"].id)
     order_id = str(uuid.uuid4())
@@ -245,7 +237,7 @@ async def test_communications_dispatchers():
     """Verify sandboxed communications execution routes for email, SMS, and push notifications."""
     assert await send_sms("+234800000000", "Hello Test SMS!") is True
     assert await send_transactional_email("test@email.com", "Test Email", "<p>Content</p>") is True
-    
+
     # Invalid push token fails
     assert await send_push_notification("invalid_token", "Push Title", "Push Body") is False
     # Valid push token resolves True in mock sandbox
