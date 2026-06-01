@@ -37,16 +37,16 @@ async def publish_event(
 
     settings = get_settings()
     client = aioredis.from_url(
-        settings.REDIS_URL.get_secret_value(),
+        settings.REDIS_URL.get_secret_value(),  # type: ignore[no-untyped-call]
         encoding="utf-8",
         decode_responses=True,
     )
     try:
         message = {
-            "business_id": str(business_id),
+            "business_id": business_id,
             "event_type": event_type,
             "payload": payload,
-            "user_id": str(user_id) if user_id else None,
+            "user_id": user_id,
         }
         await client.publish(REDIS_CHANNEL, json.dumps(message))
         logger.debug("Published event '%s' to Redis channel for business %s", event_type, business_id)
@@ -77,7 +77,7 @@ async def redis_subscriber_loop() -> None:
         client = None
         pubsub = None
         try:
-            client = aioredis.from_url(
+            client = aioredis.from_url(  # type: ignore[no-untyped-call]
                 settings.REDIS_URL.get_secret_value(),
                 encoding="utf-8",
                 decode_responses=True,

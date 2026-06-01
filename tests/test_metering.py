@@ -1,11 +1,12 @@
-import pytest
 import uuid
+
+import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.metering.service import MeteringService
-from app.modules.businesses.models import Business
-from app.modules.auth.models import User
 from app.core.exceptions import ForbiddenError
+from app.modules.auth.models import User
+from app.modules.businesses.models import Business
+from app.modules.metering.service import MeteringService
 
 
 @pytest.mark.asyncio

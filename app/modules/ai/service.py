@@ -126,6 +126,18 @@ class AIService:
 
         # Mock Fallback (Vercel Format)
         reply = "Hello! I am your OpsPilot assistant. This is a mock fallback response."
+
+        await self.repo.create(
+            AILog(
+                event_type="chat_stream",
+                prompt=prompt,
+                response=reply,
+                tokens_used=0,
+                business_id=business_id,
+            )
+        )
+        await self.db.commit()
+
         yield f"0:{json.dumps(reply)}\n"
 
     async def chat_with_assistant(self, business_id: uuid.UUID, message: str) -> str:

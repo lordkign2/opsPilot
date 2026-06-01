@@ -21,11 +21,11 @@ from app.core.config import get_settings
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.modules.billing.models import Invoice, Subscription  # noqa
 
 # Import all models to ensure they are registered with Base.metadata before create_all
-from app.modules.feature_flags.models import FeatureFlag, BusinessFeatureFlag, SubscriptionTier  # noqa
+from app.modules.feature_flags.models import BusinessFeatureFlag, FeatureFlag, SubscriptionTier  # noqa
 from app.modules.metering.models import UsageMeter  # noqa
-from app.modules.billing.models import Subscription, Invoice  # noqa
 
 settings = get_settings()
 
@@ -105,15 +105,13 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
 
         yield MockRedis()
 
-    from app.modules.auth.dependencies import get_current_business_id
-    import uuid
+    from fastapi_cache import FastAPICache
+    from fastapi_cache.backends.inmemory import InMemoryBackend
 
-    async def override_get_current_business_id():
-        return uuid.uuid4()
+    FastAPICache.init(InMemoryBackend())
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_redis] = override_get_redis
-    app.dependency_overrides[get_current_business_id] = override_get_current_business_id
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

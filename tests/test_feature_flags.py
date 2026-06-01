@@ -1,13 +1,14 @@
-import pytest
 import uuid
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import FastAPI, Depends
-from httpx import AsyncClient
 
-from app.modules.feature_flags.models import FeatureFlag, BusinessFeatureFlag
-from app.modules.feature_flags.dependencies import require_feature
-from app.modules.auth.dependencies import get_current_business_id
+import pytest
+from fastapi import Depends, FastAPI
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.exceptions import ForbiddenError
+from app.modules.auth.models import User
+from app.modules.businesses.models import Business
+from app.modules.feature_flags.dependencies import require_feature
+from app.modules.feature_flags.models import BusinessFeatureFlag, FeatureFlag
 
 
 @pytest.fixture
@@ -20,10 +21,6 @@ def mock_feature_app():
         return {"status": "success", "business_id": str(business_id)}
 
     return app
-
-
-from app.modules.businesses.models import Business
-from app.modules.auth.models import User
 
 
 @pytest.mark.asyncio

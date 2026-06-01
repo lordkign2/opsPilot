@@ -10,7 +10,7 @@ via `app/core/registry.py` — not here.
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -75,7 +75,7 @@ async def seed_super_admin() -> None:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application startup and shutdown hooks."""
     setup_logging()
 
@@ -101,6 +101,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         settings.APP_VERSION,
         settings.APP_ENV.value,
     )
+
+    # Setup fastapi-cache2
+    from typing import Any, cast
+
+    from fastapi_cache import FastAPICache
+    from fastapi_cache.backends.redis import RedisBackend
+
+    from app.db.redis import redis_client
+
+    FastAPICache.init(RedisBackend(cast(Any, redis_client)), prefix="opspilot-cache")
 
     yield
 

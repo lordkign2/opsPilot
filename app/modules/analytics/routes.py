@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query
+from fastapi_cache.decorator import cache
 
 from app.core.permissions import Permission
 from app.modules.analytics.dependencies import AnalyticsServiceDep
@@ -19,6 +20,7 @@ _analytics_read = [Depends(require_permission(Permission.ANALYTICS_READ))]
 
 
 @router.get("/overview", response_model=None, dependencies=_analytics_read)
+@cache(expire=300)  # type: ignore[untyped-decorator]
 async def get_overview(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,
@@ -29,6 +31,7 @@ async def get_overview(
 
 
 @router.get("/revenue", response_model=None, dependencies=_analytics_read)
+@cache(expire=600)  # type: ignore[untyped-decorator]
 async def get_revenue_history(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,
@@ -43,6 +46,7 @@ async def get_revenue_history(
 
 
 @router.get("/orders", response_model=None, dependencies=_analytics_read)
+@cache(expire=300)  # type: ignore[untyped-decorator]
 async def get_order_distribution(
     business_id: CurrentBusinessId,
     analytics_service: AnalyticsServiceDep,

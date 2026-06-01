@@ -114,10 +114,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         Falls back to in-memory on Redis errors.
         """
         try:
+            from typing import Any, cast
+
             from app.db.redis import redis_client
 
             now_ms = int(time.time() * 1000)
-            result = await redis_client.eval(  # type: ignore
+            result = await cast(Any, redis_client).eval(
                 _SLIDING_WINDOW_LUA,
                 1,
                 key,
