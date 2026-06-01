@@ -22,6 +22,11 @@ from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
 
+# Import all models to ensure they are registered with Base.metadata before create_all
+from app.modules.feature_flags.models import FeatureFlag, BusinessFeatureFlag, SubscriptionTier # noqa
+from app.modules.metering.models import UsageMeter # noqa
+from app.modules.billing.models import Subscription, Invoice # noqa
+
 settings = get_settings()
 
 # Use a separate test database (in-memory SQLite for speed, or test Postgres)

@@ -27,6 +27,9 @@ from app.modules.notifications.models import Notification  # noqa: F401
 from app.modules.orders.models import Order  # noqa: F401
 from app.modules.payments.models import Payment  # noqa: F401
 from app.modules.workflows.models import Workflow, WorkflowExecutionLog  # noqa: F401
+from app.modules.feature_flags.models import FeatureFlag, BusinessFeatureFlag, SubscriptionTier # noqa: F401
+from app.modules.metering.models import UsageMeter # noqa: F401
+from app.modules.billing.models import Subscription, Invoice # noqa: F401
 
 # ── Alembic Config ───────────────────────────────────────────
 config = context.config

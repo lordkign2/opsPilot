@@ -10,8 +10,10 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ForbiddenError
 from app.core.logging import get_logger
 from app.core.metrics import workflow_executions_total
+from app.modules.metering.service import MeteringService
 from app.modules.workflows.actions import run_action
 from app.modules.workflows.models import LogDepth, Workflow, WorkflowExecutionLog
 from app.modules.workflows.repository import WorkflowExecutionLogRepository
@@ -147,6 +149,20 @@ async def evaluate_and_run_workflow(db: AsyncSession, workflow: Workflow, payloa
             await db.commit()
         return
 
+    # 2.5 Metering Limit Check
+    metering = MeteringService(db)
+    try:
+        await metering.check_usage_limit(b_id, "workflow_executions")
+    except ForbiddenError as exc:
+        logger.warning("Workflow '%s' [id=%s] blocked by metering limit.", workflow.name, w_id)
+        workflow_executions_total.labels(status="failed_limit").inc()
+        if depth in (LogDepth.ALL.value, LogDepth.ERRORS_ONLY.value):
+            await log_repo.create(
+                WorkflowExecutionLog(workflow_id=w_id, business_id=b_id, status="failed", error_message=str(exc))
+            )
+            await db.commit()
+        return
+
     # 3. Resolve templates and run all actions concurrently
     actions_tasks = []
     for action in workflow.actions:
@@ -197,6 +213,9 @@ async def evaluate_and_run_workflow(db: AsyncSession, workflow: Workflow, payloa
                 )
                 await log_repo.create(log_entry)
                 await db.commit()
+
+            # 4. Increment Metering
+            await metering.increment_usage(b_id, "workflow_executions", 1)
 
     except Exception as e:
         logger.error("System failure executing workflow '%s' [id=%s]: %s", workflow.name, w_id, e, exc_info=True)

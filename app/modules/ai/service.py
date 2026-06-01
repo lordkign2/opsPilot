@@ -19,6 +19,7 @@ from app.modules.ai.rag import retrieve_relevant_context, store_memory
 from app.modules.ai.repository import AILogRepository
 from app.modules.analytics.service import AnalyticsService
 from app.modules.customers.repository import CustomerRepository
+from app.modules.metering.service import MeteringService
 from app.modules.orders.repository import OrderRepository
 from app.modules.payments.repository import PaymentRepository
 
@@ -33,6 +34,8 @@ class AIService:
         self.customer_repo = CustomerRepository(db)
         self.order_repo = OrderRepository(db)
         self.payment_repo = PaymentRepository(db)
+        self.payment_repo = PaymentRepository(db)
+        self.metering_service = MeteringService(db)
         self.settings = get_settings()
 
     async def _call_gemini(
@@ -58,8 +61,12 @@ class AIService:
     async def stream_chat_with_assistant(self, business_id: uuid.UUID, message: str) -> AsyncGenerator[str, None]:
         """
         Interact with the operations assistant and stream the response
+        Interact with the operations assistant and stream the response
         using the Vercel AI SDK Data Stream Protocol format.
         """
+        # Pre-check limits
+        await self.metering_service.check_usage_limit(business_id, "ai_tokens", 100)
+
         # 1. RAG Context Retrieval
         memories = await retrieve_relevant_context(self.db, message, business_id=str(business_id))
         rag_context = "\n".join([f"- {m.content}" for m in memories])
@@ -108,6 +115,11 @@ class AIService:
                 # Store the user's message as a memory if it seems important (simple heuristic or always)
                 await store_memory(self.db, context_key="chat_history", content=message, business_id=str(business_id))
 
+                # Increment Usage Meter
+                # Use a rough estimate of tokens for streaming, or extract it if the streaming api supports it
+                estimated_tokens = len(prompt.split()) + len(full_text.split()) * 1.5
+                await self.metering_service.increment_usage(business_id, "ai_tokens", int(estimated_tokens))
+
                 return
             except Exception as e:
                 logger.warning("Failing over to mock AI streaming due to Gemini failure: %s", str(e))
@@ -118,6 +130,9 @@ class AIService:
 
     async def chat_with_assistant(self, business_id: uuid.UUID, message: str) -> str:
         """Interact sessionless with the operations assistant."""
+        # Pre-check limits
+        await self.metering_service.check_usage_limit(business_id, "ai_tokens", 100)
+
         # 1. Gather context
         overview = await self.analytics_service.get_overview(business_id)
 
@@ -147,6 +162,10 @@ class AIService:
                     )
                 )
                 await self.db.commit()
+
+                # Increment Usage Meter
+                await self.metering_service.increment_usage(business_id, "ai_tokens", tokens)
+
                 return reply
             except Exception as e:
                 logger.warning("Failing over to mock AI response due to Gemini failure: %s", str(e))
@@ -173,6 +192,9 @@ class AIService:
 
     async def generate_business_summary(self, business_id: uuid.UUID, timeframe: str) -> str:
         """Create a professional business activity summary."""
+        # Pre-check limits
+        await self.metering_service.check_usage_limit(business_id, "ai_tokens", 500)
+
         overview = await self.analytics_service.get_overview(business_id)
         dist = await self.analytics_service.get_order_distribution(business_id)
 
@@ -202,6 +224,8 @@ class AIService:
                     )
                 )
                 await self.db.commit()
+
+                await self.metering_service.increment_usage(business_id, "ai_tokens", tokens)
                 return reply
             except Exception as e:
                 logger.warning("Failing over to mock business summary: %s", str(e))
@@ -236,6 +260,9 @@ class AIService:
 
     async def generate_recommendations(self, business_id: uuid.UUID) -> list[dict[str, Any]]:
         """Detect operational anomalies and produce high-impact suggestions."""
+        # Pre-check limits
+        await self.metering_service.check_usage_limit(business_id, "ai_tokens", 300)
+
         # Query orders and customers to formulate context
         overview = await self.analytics_service.get_overview(business_id)
 
@@ -268,6 +295,8 @@ class AIService:
                             )
                         )
                         await self.db.commit()
+
+                        await self.metering_service.increment_usage(business_id, "ai_tokens", tokens)
                         return recs
                 except Exception:
                     logger.error(
@@ -316,6 +345,9 @@ class AIService:
 
     async def generate_customer_insights(self, business_id: uuid.UUID, customer_id: uuid.UUID) -> str:
         """Create highly contextual behavior insights for a specific customer."""
+        # Pre-check limits
+        await self.metering_service.check_usage_limit(business_id, "ai_tokens", 300)
+
         customer = await self.customer_repo.get_one_by(id=customer_id, business_id=business_id)
         if not customer:
             raise ValueError("Customer not found or access is unauthorized.")
@@ -359,6 +391,8 @@ class AIService:
                     )
                 )
                 await self.db.commit()
+
+                await self.metering_service.increment_usage(business_id, "ai_tokens", tokens)
                 return reply
             except Exception as e:
                 logger.warning("Failing over to mock customer insights: %s", str(e))
