@@ -7,11 +7,20 @@ from app.modules.businesses.models import Business
 from app.modules.auth.models import User
 from app.core.exceptions import ForbiddenError
 
+
 @pytest.mark.asyncio
 async def test_metering_increment_and_limits(db_session: AsyncSession):
     # Setup business
     user_id = uuid.uuid4()
-    user = User(id=user_id, email=f"test{user_id}@example.com", password_hash="pw", first_name="Test", last_name="User", is_active=True, is_verified=True)
+    user = User(
+        id=user_id,
+        email=f"test{user_id}@example.com",
+        password_hash="pw",
+        first_name="Test",
+        last_name="User",
+        is_active=True,
+        is_verified=True,
+    )
     db_session.add(user)
     await db_session.flush()
 

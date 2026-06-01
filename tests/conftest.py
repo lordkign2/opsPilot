@@ -23,9 +23,9 @@ from app.db.session import get_db
 from app.main import app
 
 # Import all models to ensure they are registered with Base.metadata before create_all
-from app.modules.feature_flags.models import FeatureFlag, BusinessFeatureFlag, SubscriptionTier # noqa
-from app.modules.metering.models import UsageMeter # noqa
-from app.modules.billing.models import Subscription, Invoice # noqa
+from app.modules.feature_flags.models import FeatureFlag, BusinessFeatureFlag, SubscriptionTier  # noqa
+from app.modules.metering.models import UsageMeter  # noqa
+from app.modules.billing.models import Subscription, Invoice  # noqa
 
 settings = get_settings()
 
@@ -53,6 +53,7 @@ async def test_engine():
     async_session_factory.configure(bind=engine)
 
     from sqlalchemy import text
+
     async with engine.begin() as conn:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
         await conn.run_sync(Base.metadata.create_all)

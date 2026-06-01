@@ -150,3 +150,19 @@ Ready the platform for production SaaS operations, subscriptions, and global dep
    * Integrate dynamic feature flags to allow staged rollouts, beta features, and custom tier restrictions.
 4. **Multi-Region & High Availability**:
    * Formulate replication, caching, and horizontal deployment topologies to ensure low-latency high-availability operations.
+
+---
+
+## Phase 11 — Performance & Optimization
+
+### Goal
+Scale OpsPilot to handle high throughput with rapid response times and robust background processing capabilities.
+
+### Major Initiatives
+1. **Asynchronous Task Queue**:
+   * Integrate `arq` to offload heavy blocking operations (AI workflows, Webhooks, Emails) from the main API thread.
+2. **Caching Layer**:
+   * Implement `fastapi-cache2` to memoize heavy read endpoints (like analytics or dashboard summaries).
+3. **Database Query Optimization**:
+   * Introduce proper database indexing for hot columns.
+   * Update repository models to use `selectinload` or `joinedload` resolving N+1 query performance hits.
